@@ -120,7 +120,7 @@ Props mirror the widget but omit layout-specific fields:
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `placeId`, `languageCode`, `class`, `fallbackRating`, `fallbackReviewCount`, `endpoint` | Same semantics as widget. The badge automatically uses `import.meta.env.GOOGLE_PLACES_DEFAULT_NAME` for analytics events and derives the Google Reviews URL from the place ID. |
+| `placeId`, `businessName`, `languageCode`, `reviewUrl`, `class`, `fallbackRating`, `fallbackReviewCount`, `ctaText`, `endpoint` | Same semantics as the widget. If you omit `businessName`, the Places API display name is used; provide `ctaText` to customise the inline link copy. |
 
 ### Usage Example
 

@@ -4,3 +4,4 @@ export { default as GoogleReviewsBadge } from './components/google-reviews/Googl
 export { default as initGoogleReviews } from './lib/client/googleReviewsClient';
 export { getGoogleReviewSnapshot } from './lib/server/googleReviews';
 export { googleReviewsHandler } from './server/googleReviewsHandler';
+export type { CommonProps } from './components/google-reviews/types';

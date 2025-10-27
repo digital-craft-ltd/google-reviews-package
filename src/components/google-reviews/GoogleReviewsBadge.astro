@@ -1,22 +1,19 @@
 ---
 import '../../styles/google-reviews.css';
 import { createFallbackData, formatRatingDisplay, resolveReviewsUrl } from '../../lib/utils/reviewFormatting';
+import type { CommonProps } from './types';
 
-type Props = {
-	placeId?: string;
-	languageCode?: string;
-	class?: string;
-	fallbackRating?: number;
-	fallbackReviewCount?: number;
-	endpoint?: string;
-};
+type Props = CommonProps;
 
 const {
 	placeId,
+	businessName = '',
 	languageCode = 'en',
+	reviewUrl,
 	class: className = '',
 	fallbackRating,
 	fallbackReviewCount,
+	ctaText,
 	endpoint = '/api/google-reviews',
 } = Astro.props as Props;
 
@@ -24,14 +21,15 @@ const resolvedPlaceId = placeId ?? import.meta.env.GOOGLE_PLACES_DEFAULT_PLACE_I
 
 const badgeId = `google-reviews-badge-${Math.random().toString(36).slice(2, 10)}`;
 
-const badgeCtaTemplate = '{count} {label}';
+const initialBusinessName = businessName ?? '';
+const ctaTemplate = ctaText ?? '{count} {label}';
 
 const badgeClientOptions = {
 	id: badgeId,
 	selectors: {
 		starsContainer: '.badge-stars',
 	},
-	ctaTemplate: badgeCtaTemplate,
+	ctaTemplate,
 	strings: {
 		ratingAvailable: 'Google rating {rating} out of 5 stars',
 		ratingPending: 'Google rating not available yet',
@@ -48,16 +46,29 @@ const initialRating = formatRatingDisplay(fallbackData?.rating ?? null);
 const initialLabel = hasInitialRating
 	? `Google rating ${initialRating} out of 5 stars`
 	: 'Google rating not available yet';
-const resolvedReviewUrl = resolveReviewsUrl(resolvedPlaceId);
+const resolvedReviewUrl = resolveReviewsUrl(resolvedPlaceId, reviewUrl);
 const initialReviewCountValue =
 	typeof fallbackData?.reviewCount === 'number' && Number.isFinite(fallbackData.reviewCount)
 		? fallbackData.reviewCount
 		: null;
 const initialReviewCountLabel = initialReviewCountValue === 1 ? 'review' : 'reviews';
-const initialReviewCountText =
-	initialReviewCountValue !== null
-		? `${initialReviewCountValue.toLocaleString()} ${initialReviewCountLabel}`
-		: 'Read Google reviews';
+let initialCtaText = ctaTemplate;
+if (initialCtaText.includes('{label}')) {
+	const labelForFallback = initialReviewCountValue !== null ? initialReviewCountLabel : 'reviews';
+	initialCtaText = initialCtaText.replace('{label}', labelForFallback);
+}
+
+if (initialReviewCountValue !== null) {
+	if (initialCtaText.includes('{count}')) {
+		initialCtaText = initialCtaText.replace('{count}', initialReviewCountValue.toLocaleString());
+	}
+} else if (initialCtaText.includes('{count}')) {
+	initialCtaText = 'Read Google reviews';
+}
+
+if (!initialCtaText.trim()) {
+	initialCtaText = 'Read Google reviews';
+}
 const initialScreenReaderCount =
 	initialReviewCountValue !== null
 		? `${initialReviewCountValue.toLocaleString()} ${initialReviewCountLabel}`
@@ -71,7 +82,8 @@ const initialScreenReaderCount =
  data-language={languageCode}
  data-endpoint={endpoint}
  data-review-url={resolvedReviewUrl ?? ''}
- data-cta-template={badgeCtaTemplate}
+ data-business-name={initialBusinessName}
+ data-cta-template={ctaTemplate}
  data-google-reviews-options={JSON.stringify(badgeClientOptions)}
 >
 	<div class="flex items-center gap-2">
@@ -116,19 +128,19 @@ const initialScreenReaderCount =
 			))}
 		</div>
 	</div>
-	<!-- <a
+	<a
 		href={resolvedReviewUrl ?? '#'}
 		class="badge-link text-xs font-medium text-blue-600 hover:text-blue-500 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
 		target="_blank"
 		rel="noopener noreferrer"
 		data-review-link
 	>
-		<span data-cta-text>{initialReviewCountText}</span>
+		<span data-cta-text>{initialCtaText}</span>
 		<span class="sr-only">
 			(
 			<span data-review-count>{initialScreenReaderCount}</span>
 			)
 		</span>
-	</a> -->
+	</a>
 	<template data-fallback>{fallbackData ? JSON.stringify(fallbackData) : ''}</template>
 </section>

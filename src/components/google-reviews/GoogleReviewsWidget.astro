@@ -1,19 +1,11 @@
 ---
 import '../../styles/google-reviews.css';
 import { createFallbackData, formatRatingDisplay, resolveReviewsUrl } from '../../lib/utils/reviewFormatting';
+import type { CommonProps } from './types';
 
-type Props = {
-	placeId?: string;
-	businessName?: string;
-	languageCode?: string;
-	reviewUrl?: string;
-	class?: string;
-	fallbackRating?: number;
-	fallbackReviewCount?: number;
+type Props = CommonProps & {
 	heading?: string;
 	subheading?: string;
-	ctaText?: string;
-	endpoint?: string;
 };
 const {
 	placeId,
