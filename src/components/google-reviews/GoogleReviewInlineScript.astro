@@ -1,7 +1,7 @@
 ---
 import bootstrap from '../../lib/client/googleReviewsBootstrap.ts';
 
-const bootstrapSrc = Astro.resolve(bootstrap as never);
+const bootstrapSrc = (Astro as any).resolve(bootstrap);
 ---
 
 <script type="module" src={bootstrapSrc}></script>
