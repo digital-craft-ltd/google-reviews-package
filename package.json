@@ -1,5 +1,5 @@
 {
-  "name": "@your-scope/google-reviews",
+  "name": "@dc/google-reviews",
   "version": "0.0.1",
   "type": "module",
   "description": "Reusable Google Reviews widgets + API helpers for Astro projects.",
