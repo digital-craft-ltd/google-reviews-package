@@ -43,3 +43,5 @@ if (typeof window !== 'undefined') {
     bootstrap();
   }
 }
+
+export default undefined;
