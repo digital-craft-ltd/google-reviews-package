@@ -1,6 +1,6 @@
 ---
+// @ts-ignore Astro.resolve is provided at runtime when bundling components.
+const bootstrapSrc = Astro.resolve('../../lib/client/googleReviewsBootstrap.ts');
 ---
 
-<script type="module">
-  import '../../lib/client/googleReviewsBootstrap.ts';
-</script>
+<script type="module" src={bootstrapSrc}></script>
