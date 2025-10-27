@@ -1,5 +1,6 @@
 ---
-const bootstrapUrl = new URL('../../lib/client/googleReviewsBootstrap.ts', import.meta.url);
+const bootstrapCode = await import('../../lib/client/googleReviewsBootstrap.ts');
 ---
-
-<script type="module" src={bootstrapUrl.href}></script>
+<script type="module">
+  import '../../lib/client/googleReviewsBootstrap.ts';
+</script>
