@@ -1,4 +1,7 @@
 ---
-const bootstrapSrc = Astro.resolve('../../lib/client/googleReviewsBootstrap.ts');
+import { resolve } from 'astro:assets';
+
+const bootstrapSrc = resolve('../../lib/client/googleReviewsBootstrap.ts');
+---
 
 <script type="module" src={bootstrapSrc}></script>
