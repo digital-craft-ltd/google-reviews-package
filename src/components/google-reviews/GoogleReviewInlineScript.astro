@@ -1,7 +1,5 @@
 ---
-import bootstrap from '../../lib/client/googleReviewsBootstrap.ts';
-
-const bootstrapSrc = (Astro as any).resolve(bootstrap);
+const bootstrapUrl = new URL('../../lib/client/googleReviewsBootstrap.ts', import.meta.url);
 ---
 
-<script type="module" src={bootstrapSrc}></script>
+<script type="module" src={bootstrapUrl.href}></script>
