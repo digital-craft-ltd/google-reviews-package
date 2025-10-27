@@ -20,18 +20,17 @@ const {
 const resolvedPlaceId = placeId ?? import.meta.env.GOOGLE_PLACES_DEFAULT_PLACE_ID ?? '';
 
 const badgeId = `google-reviews-badge-${Math.random().toString(36).slice(2, 10)}`;
-
-const initialBusinessName = businessName ?? '';
+const initialBusinessName = businessName?.trim() ?? '';
 const ctaTemplate = ctaText ?? '{count} {label}';
 
 const badgeClientOptions = {
-	id: badgeId,
-	selectors: {
-		starsContainer: '.badge-stars',
-	},
-	ctaTemplate,
-	strings: {
-		ratingAvailable: 'Google rating {rating} out of 5 stars',
+id: badgeId,
+ selectors: {
+    starsContainer: '.badge-stars',
+  },
+  ctaTemplate,
+  strings: {
+    ratingAvailable: 'Google rating {rating} out of 5 stars',
 		ratingPending: 'Google rating not available yet',
 		starsAvailable: 'Google rating {rating} out of 5 stars',
 		starsPending: 'Google rating not available yet',
@@ -53,26 +52,21 @@ const initialReviewCountValue =
 		: null;
 const initialReviewCountLabel = initialReviewCountValue === 1 ? 'review' : 'reviews';
 let initialCtaText = ctaTemplate;
-if (initialCtaText.includes('{label}')) {
-	const labelForFallback = initialReviewCountValue !== null ? initialReviewCountLabel : 'reviews';
-	initialCtaText = initialCtaText.replace('{label}', labelForFallback);
-}
 
 if (initialReviewCountValue !== null) {
-	if (initialCtaText.includes('{count}')) {
-		initialCtaText = initialCtaText.replace('{count}', initialReviewCountValue.toLocaleString());
-	}
-} else if (initialCtaText.includes('{count}')) {
-	initialCtaText = 'Read Google reviews';
-}
+	const formattedCount = initialReviewCountValue.toLocaleString();
+	initialCtaText = initialCtaText
+		.replace('{count}', formattedCount)
+		.replace('{label}', initialReviewCountLabel);
+} else {
+	initialCtaText = initialCtaText
+		.replace('{count}', 'Read Google reviews')
+		.replace('{label}', 'reviews');
 
-if (!initialCtaText.trim()) {
-	initialCtaText = 'Read Google reviews';
+	if (initialCtaText.includes('{') || !initialCtaText.trim()) {
+		initialCtaText = 'Read Google reviews';
+	}
 }
-const initialScreenReaderCount =
-	initialReviewCountValue !== null
-		? `${initialReviewCountValue.toLocaleString()} ${initialReviewCountLabel}`
-		: 'No reviews yet';
 ---
 
 <section
@@ -136,11 +130,6 @@ const initialScreenReaderCount =
 		data-review-link
 	>
 		<span data-cta-text>{initialCtaText}</span>
-		<span class="sr-only">
-			(
-			<span data-review-count>{initialScreenReaderCount}</span>
-			)
-		</span>
 	</a>
 	<template data-fallback>{fallbackData ? JSON.stringify(fallbackData) : ''}</template>
 </section>
