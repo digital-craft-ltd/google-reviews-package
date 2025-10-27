@@ -1,0 +1,26 @@
+{
+  "name": "@your-scope/google-reviews",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Reusable Google Reviews widgets + API helpers for Astro projects.",
+  "license": "MIT",
+  "files": [
+    "src"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles/google-reviews.css"
+  },
+  "scripts": {
+    "build": "echo 'TODO: add build step'"
+  },
+  "peerDependencies": {
+    "astro": "^5.0.0"
+  },
+  "dependencies": {
+    "@vercel/kv": "^1.0.1"
+  },
+  "devDependencies": {
+    "astro": "^5.15.1"
+  }
+}
