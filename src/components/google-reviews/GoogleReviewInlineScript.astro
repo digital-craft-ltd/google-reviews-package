@@ -1,6 +1,6 @@
 ---
-const bootstrapCode = await import('../../lib/client/googleReviewsBootstrap.ts');
+import bootstrapUrl from '../../lib/client/googleReviewsBootstrap.ts?url';
 ---
-<script type="module">
-  import '../../lib/client/googleReviewsBootstrap.ts';
-</script>
+
+<script type="module" src={bootstrapUrl}></script>
+
