@@ -21,7 +21,6 @@ const {
 } = Astro.props as Props;
 
 const resolvedPlaceId = placeId ?? import.meta.env.GOOGLE_PLACES_DEFAULT_PLACE_ID ?? '';
-const resolvedBusinessName = import.meta.env.GOOGLE_PLACES_DEFAULT_NAME || '';
 
 const badgeId = `google-reviews-badge-${Math.random().toString(36).slice(2, 10)}`;
 
@@ -71,7 +70,6 @@ const initialScreenReaderCount =
  data-place-id={resolvedPlaceId}
  data-language={languageCode}
  data-endpoint={endpoint}
- data-business-name={resolvedBusinessName}
  data-review-url={resolvedReviewUrl ?? ''}
  data-cta-template={badgeCtaTemplate}
  data-google-reviews-options={JSON.stringify(badgeClientOptions)}

@@ -30,7 +30,7 @@ The components expose their configuration via a `data-google-reviews-options` at
 | --- | --- | --- |
 | `GOOGLE_PLACES_API_KEY` | ✅ | Server-side API key with access to the Places API (New). |
 | `GOOGLE_PLACES_DEFAULT_PLACE_ID` | ⛔️ | Optional fallback place ID used when components omit `placeId`. |
-| `GOOGLE_PLACES_DEFAULT_NAME` | ⛔️ | Optional fallback business name injected into options. |
+| `GOOGLE_PLACES_DEFAULT_NAME` | ⛔️ | Optional name you can pass to components if you want to override Google’s display name. |
 | `GOOGLE_REVIEWS_CACHE_TTL` | ⛔️ | Cache lifetime in seconds (default 86400 / 24h). |
 | `CRON_SECRET` | ⛔️ | Shared secret used for forced refresh requests. Passed via `Authorization: Bearer <CRON_SECRET>`. |
 | `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `KV_REST_API_READ_ONLY_TOKEN` | ⛔️ | Added automatically when Vercel KV is connected. Used for persistent caching. |
@@ -100,7 +100,7 @@ Props:
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `placeId` | `string` | `import.meta.env.GOOGLE_PLACES_DEFAULT_PLACE_ID` | Google place ID. Pass explicitly for multi-location sites; otherwise the component falls back to the env var. Missing both prop and env var results in a build-time error. |
-| `businessName` | `string` | `import.meta.env.GOOGLE_PLACES_DEFAULT_NAME` | Display name used in analytics/events. |
+| `businessName` | `string` | `''` | Optional display name. When omitted, the Places API display name from the server response is used for events/analytics. |
 | `languageCode` | `string` | `en` | Language passed to the API. |
 | `reviewUrl` | `string` | Google reviews URL derived from place ID | CTA link target. |
 | `class` | `string` | `''` | Extra class names for wrapper. |
@@ -112,6 +112,7 @@ Props:
 | `endpoint` | `string` | `/api/google-reviews` | Override endpoint path. |
 
 > **Note:** If you operate multiple locations, provide unique `placeId` props per widget (e.g. `<GoogleReviewsWidget placeId={import.meta.env.GOOGLE_PLACE_ID_EAST} />`). For single-location sites, you can rely on `GOOGLE_PLACES_DEFAULT_PLACE_ID` without passing the prop explicitly.
+> When the API responds, the client updates `data-business-name` with the Google-supplied display name. Pass the `businessName` prop only if you need to override that value.
 ### `GoogleReviewsBadge.astro`
 A one-line badge showing Google logo, score, and stars; ideal for inline placements.
 

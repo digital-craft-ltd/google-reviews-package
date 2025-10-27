@@ -32,6 +32,7 @@ type ReviewPayload = {
 	reviewsUrl?: string;
 	updatedAt?: string;
 	placeId?: string;
+	businessName?: string;
 	source?: 'fresh' | 'cache' | 'fallback';
 };
 
@@ -119,7 +120,7 @@ export default function initGoogleReviews(options: GoogleReviewsClientOptions) {
 	const placeId = dataset.placeId || '';
 	const endpoint = dataset.endpoint || '/api/google-reviews';
 	const language = dataset.language || 'en';
-	const businessName = dataset.businessName || '';
+	const initialBusinessName = dataset.businessName?.trim() ?? '';
 	const ctaTemplate = dataset.ctaTemplate || options.ctaTemplate || '';
 	const initialSource = dataset.source || '';
 
@@ -221,15 +222,20 @@ export default function initGoogleReviews(options: GoogleReviewsClientOptions) {
 		if (payload.updatedAt) {
 			root.dataset.updatedAt = payload.updatedAt;
 		}
+		if (payload.businessName) {
+			root.dataset.businessName = payload.businessName;
+		}
 		if (payload.source) {
 			root.dataset.source = payload.source;
 		}
+
+		const nextBusinessName = payload.businessName ?? root.dataset.businessName ?? initialBusinessName;
 
 		window.dispatchEvent(
 			new CustomEvent('google-reviews:update', {
 				detail: {
 					placeId: payload.placeId || root.dataset.placeId,
-					businessName,
+					businessName: nextBusinessName,
 					data: payload,
 				},
 			}),
@@ -250,7 +256,8 @@ export default function initGoogleReviews(options: GoogleReviewsClientOptions) {
 			const url = new URL(endpoint, window.location.origin);
 			if (placeId) url.searchParams.set('placeId', placeId);
 			url.searchParams.set('languageCode', language);
-			if (businessName) url.searchParams.set('businessName', businessName);
+			const currentBusinessName = root.dataset.businessName?.trim() ?? initialBusinessName;
+			if (currentBusinessName) url.searchParams.set('businessName', currentBusinessName);
 			const response = await fetch(url.toString(), { signal: controller.signal });
 			if (!response.ok) {
 				throw new Error(`Non-200 response ${response.status}`);

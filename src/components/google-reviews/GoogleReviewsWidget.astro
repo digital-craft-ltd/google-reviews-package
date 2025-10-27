@@ -35,7 +35,7 @@ if (!resolvedPlaceId) {
 	throw new Error('GoogleReviewsWidget requires a placeId prop or GOOGLE_PLACES_DEFAULT_PLACE_ID env var.');
 }
 
-const resolvedBusinessName = businessName || import.meta.env.GOOGLE_PLACES_DEFAULT_NAME || '';
+const initialBusinessName = businessName ?? '';
 
 const widgetId = `google-reviews-${Math.random().toString(36).slice(2, 10)}`;
 
@@ -94,7 +94,7 @@ const initialStarsAria = hasInitialRating
 	data-language={languageCode}
 	data-endpoint={endpoint}
 	data-cta-template={ctaTemplate}
-	data-business-name={resolvedBusinessName}
+	data-business-name={initialBusinessName}
 	data-review-url={resolvedReviewUrl ?? ''}
 	data-google-reviews-options={widgetOptionsJson}
 >
