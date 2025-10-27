@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getGoogleReviewSnapshot } from '../lib/server/googleReviews';
 
-const DEFAULT_NAME = process.env.GOOGLE_PLACES_DEFAULT_NAME;
 const CACHE_HEADERS = {
 	'Content-Type': 'application/json',
 	'Cache-Control': 'no-store',
@@ -13,7 +12,7 @@ export const googleReviewsHandler: APIRoute = async ({ request }) => {
 	const placeIdParam = url.searchParams.get('placeId');
 	const placeId = typeof placeIdParam === 'string' && placeIdParam.trim().length > 0 ? placeIdParam : null;
 	const languageCode = url.searchParams.get('languageCode') ?? 'en';
-	const businessName = url.searchParams.get('businessName') ?? DEFAULT_NAME;
+	const businessName = url.searchParams.get('businessName');
 	const forceParam = url.searchParams.get('force');
 	const cronSecret = process.env.CRON_SECRET;
 	const authHeader = request.headers.get('authorization') ?? '';
