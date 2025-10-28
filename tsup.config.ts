@@ -23,7 +23,6 @@ export default defineConfig({
 		entry: {
 			index: 'src/index.ts',
 			'lib/client/googleReviewsClient': 'src/lib/client/googleReviewsClient.ts',
-			'lib/client/googleReviewsBootstrap': 'src/lib/client/googleReviewsBootstrap.ts',
 			'lib/utils/reviewFormatting': 'src/lib/utils/reviewFormatting.ts',
 			'lib/server/googleReviews': 'src/lib/server/googleReviews.ts',
 			'server/googleReviewsHandler': 'src/server/googleReviewsHandler.ts',
