@@ -60,10 +60,7 @@ if (initialReviewCountValue !== null) {
 		.replace('{label}', initialReviewCountLabel);
 } else {
 	if (ctaText) {
-		initialCtaText = initialCtaText.replace('{count}', '').replace('{label}', '').replace(/\s{2,}/g, ' ').trim();
-		if (!initialCtaText) {
-			initialCtaText = 'Leave a review';
-		}
+	initialCtaText = ctaText && !ctaText.includes('{') ? ctaText : 'Leave a review';
 	} else {
 		initialCtaText = 'Leave a review';
 	}

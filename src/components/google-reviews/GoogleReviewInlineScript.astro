@@ -1,6 +1,51 @@
 ---
 ---
+---
 
 <script type="module">
-	import '../../lib/client/googleReviewsBootstrap';
+	const selector = '[data-google-reviews-options]';
+
+	const bootstrap = async () => {
+		if (window.__googleReviewsBootstrapped) return;
+		window.__googleReviewsBootstrapped = true;
+
+		try {
+			const { default: initGoogleReviews } = await import('dc-google-reviews/lib/client/googleReviewsClient');
+
+			document.querySelectorAll(selector).forEach((el) => {
+				const optionsAttr = el.getAttribute('data-google-reviews-options');
+				if (!optionsAttr) return;
+
+				try {
+					const options = JSON.parse(optionsAttr);
+					if (!options.id) {
+						if (!el.id) {
+							el.id = `google-reviews-${Math.random().toString(36).slice(2, 10)}`;
+						}
+						options.id = el.id;
+					} else if (!el.id) {
+						el.id = options.id;
+					}
+
+					initGoogleReviews(options);
+				} catch (error) {
+					if (import.meta.env.DEV) {
+						console.error('[GoogleReviews] Failed to initialise', error);
+					}
+				}
+			});
+		} catch (error) {
+			if (import.meta.env.DEV) {
+				console.error('[GoogleReviews] Failed to load client initialiser', error);
+			}
+		}
+	};
+
+	if (typeof window !== 'undefined') {
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
+		} else {
+			bootstrap();
+		}
+	}
 </script>
