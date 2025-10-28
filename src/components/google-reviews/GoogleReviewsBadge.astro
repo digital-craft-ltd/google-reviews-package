@@ -35,7 +35,7 @@ id: badgeId,
 		starsAvailable: 'Google rating {rating} out of 5 stars',
 		starsPending: 'Google rating not available yet',
 		noReviewsText: 'No reviews yet',
-		noReviewsCtaText: 'Read Google reviews',
+		noReviewsCtaText: 'Leave a review',
 	},
 };
 
@@ -59,12 +59,13 @@ if (initialReviewCountValue !== null) {
 		.replace('{count}', formattedCount)
 		.replace('{label}', initialReviewCountLabel);
 } else {
-	initialCtaText = initialCtaText
-		.replace('{count}', 'Read Google reviews')
-		.replace('{label}', 'reviews');
-
-	if (initialCtaText.includes('{') || !initialCtaText.trim()) {
-		initialCtaText = 'Read Google reviews';
+	if (ctaText) {
+		initialCtaText = initialCtaText.replace('{count}', '').replace('{label}', '').replace(/\s{2,}/g, ' ').trim();
+		if (!initialCtaText) {
+			initialCtaText = 'Leave a review';
+		}
+	} else {
+		initialCtaText = 'Leave a review';
 	}
 }
 ---
