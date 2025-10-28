@@ -13,6 +13,23 @@ This module provides a reusable client/server stack for rendering Google Places 
 
 The components expose their configuration via a `data-google-reviews-options` attribute; the layout script reads those options and calls `initGoogleReviews` from the shared client helper, which handles fetching the server endpoint, rendering fallback values, and dispatching `google-reviews:update` events.
 
+## Installation
+
+```bash
+npm install dc-google-reviews
+```
+
+```astro
+---
+import {
+  GoogleReviewInlineScript,
+  GoogleReviewsWidget,
+  GoogleReviewsBadge,
+} from 'dc-google-reviews';
+import 'dc-google-reviews/styles.css';
+---
+```
+
 ## Data Flow
 
 1. Component renders with fallback rating/count (optional) and embeds options in a data attribute.
@@ -36,6 +53,8 @@ The components expose their configuration via a `data-google-reviews-options` at
 | `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `KV_REST_API_READ_ONLY_TOKEN` | ⛔️ | Added automatically when Vercel KV is connected. Used for persistent caching. |
 
 Add the same values to Vercel project settings before deploying. The `.env.example` file documents every variable.
+
+> ⚠️ Always use a server-only Google Places API key locked to your server IP range or VPC. Never expose this key in a client bundle or commit it to source control.
 
 ## Server Endpoint
 

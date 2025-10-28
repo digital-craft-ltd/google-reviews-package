@@ -1,18 +1,41 @@
 {
-  "name": "@dc/google-reviews",
+  "name": "dc-google-reviews",
   "version": "0.0.1",
   "type": "module",
   "description": "Reusable Google Reviews widgets + API helpers for Astro projects.",
   "license": "MIT",
   "files": [
-    "src"
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
   ],
   "exports": {
-    ".": "./src/index.ts",
-    "./styles.css": "./src/styles/google-reviews.css"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./components/*": "./dist/components/*",
+    "./styles.css": "./dist/styles/google-reviews.css"
   },
   "scripts": {
-    "build": "echo 'TODO: add build step'"
+    "build": "tsup --config tsup.config.ts && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "astro",
+    "google",
+    "reviews",
+    "widget",
+    "google-maps",
+    "places-api"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "peerDependencies": {
     "astro": "^5.0.0"
@@ -21,6 +44,10 @@
     "@vercel/kv": "^1.0.1"
   },
   "devDependencies": {
-    "astro": "^5.15.1"
+    "astro": "^5.15.1",
+    "@types/node": "^20.14.10",
+    "tsup": "^8.0.2",
+    "typescript": "^5.5.4",
+    "vitest": "^1.6.0"
   }
 }
