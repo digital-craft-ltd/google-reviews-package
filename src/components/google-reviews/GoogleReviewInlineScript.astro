@@ -3,6 +3,13 @@
 
 <script type="module">
 	const selector = '[data-google-reviews-options]';
+	const isDev = (() => {
+		try {
+			return typeof import.meta !== 'undefined' && typeof import.meta.env === 'object' && Boolean(import.meta.env?.DEV);
+		} catch {
+			return false;
+		}
+	})();
 
 	const bootstrap = async () => {
 		if (window.__googleReviewsBootstrapped) return;
@@ -28,13 +35,13 @@
 
 					initGoogleReviews(options);
 				} catch (error) {
-					if (import.meta.env.DEV) {
+					if (isDev) {
 						console.error('[GoogleReviews] Failed to initialise', error);
 					}
 				}
 			});
 		} catch (error) {
-			if (import.meta.env.DEV) {
+			if (isDev) {
 				console.error('[GoogleReviews] Failed to load client initialiser', error);
 			}
 		}
