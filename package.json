@@ -17,6 +17,11 @@
       "require": "./dist/index.cjs"
     },
     "./components/*": "./dist/components/*",
+    "./lib/client/googleReviewsBootstrap": {
+      "types": "./dist/lib/client/googleReviewsBootstrap.d.ts",
+      "import": "./dist/lib/client/googleReviewsBootstrap.js",
+      "require": "./dist/lib/client/googleReviewsBootstrap.cjs"
+    },
     "./lib/client/googleReviewsClient": {
       "types": "./dist/lib/client/googleReviewsClient.d.ts",
       "import": "./dist/lib/client/googleReviewsClient.js",
