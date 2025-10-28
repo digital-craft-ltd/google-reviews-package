@@ -47,7 +47,6 @@ import 'dc-google-reviews/styles.css';
 | --- | --- | --- |
 | `GOOGLE_PLACES_API_KEY` | ✅ | Server-side API key with access to the Places API (New). |
 | `GOOGLE_PLACES_DEFAULT_PLACE_ID` | ⛔️ | Optional fallback place ID used when components omit `placeId`. |
-| `GOOGLE_PLACES_DEFAULT_NAME` | ⛔️ | Optional name you can pass to components if you want to override Google’s display name. |
 | `GOOGLE_REVIEWS_CACHE_TTL` | ⛔️ | Cache lifetime in seconds (default 86400 / 24h). |
 | `CRON_SECRET` | ⛔️ | Shared secret used for forced refresh requests. Passed via `Authorization: Bearer <CRON_SECRET>`. |
 | `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `KV_REST_API_READ_ONLY_TOKEN` | ⛔️ | Added automatically when Vercel KV is connected. Used for persistent caching. |
