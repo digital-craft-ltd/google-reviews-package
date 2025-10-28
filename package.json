@@ -1,6 +1,6 @@
 {
   "name": "dc-google-reviews",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "type": "module",
   "description": "Reusable Google Reviews widgets + API helpers for Astro projects.",
   "license": "MIT",
