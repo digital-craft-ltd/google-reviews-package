@@ -12,7 +12,8 @@ export const googleReviewsHandler: APIRoute = async ({ request }) => {
 	const placeIdParam = url.searchParams.get('placeId');
 	const placeId = typeof placeIdParam === 'string' && placeIdParam.trim().length > 0 ? placeIdParam : null;
 	const languageCode = url.searchParams.get('languageCode') ?? 'en';
-	const businessName = url.searchParams.get('businessName');
+	const businessNameParam = url.searchParams.get('businessName');
+	const businessName = businessNameParam && businessNameParam.trim().length > 0 ? businessNameParam.trim() : undefined;
 	const forceParam = url.searchParams.get('force');
 	const cronSecret = process.env.CRON_SECRET;
 	const authHeader = request.headers.get('authorization') ?? '';
@@ -42,7 +43,7 @@ export const googleReviewsHandler: APIRoute = async ({ request }) => {
 	try {
 		const { data, error } = await getGoogleReviewSnapshot(placeId, {
 			languageCode,
-			businessName: businessName ?? undefined,
+			businessName,
 			forceRefresh,
 		});
 

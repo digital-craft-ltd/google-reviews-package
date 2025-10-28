@@ -122,10 +122,13 @@ async function fetchFromGoogle({ placeId, languageCode, businessName }: FetchOpt
 	const reviewCount = typeof data.userRatingCount === 'number' ? data.userRatingCount : 0;
 	const displayName = data.displayName?.text as string | undefined;
 	const googleMapsUri = typeof data.googleMapsUri === 'string' ? data.googleMapsUri : undefined;
+	const normalizedDisplayName = displayName?.trim().length ? displayName.trim() : undefined;
+	const normalizedInputName = businessName?.trim().length ? businessName.trim() : undefined;
+	const resolvedBusinessName = normalizedDisplayName ?? normalizedInputName;
 
 	return {
 		placeId,
-		businessName: businessName ?? displayName,
+		businessName: resolvedBusinessName,
 		languageCode,
 		rating,
 		reviewCount,
