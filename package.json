@@ -17,6 +17,26 @@
       "require": "./dist/index.cjs"
     },
     "./components/*": "./dist/components/*",
+    "./lib/client/googleReviewsClient": {
+      "types": "./dist/lib/client/googleReviewsClient.d.ts",
+      "import": "./dist/lib/client/googleReviewsClient.js",
+      "require": "./dist/lib/client/googleReviewsClient.cjs"
+    },
+    "./lib/utils/reviewFormatting": {
+      "types": "./dist/lib/utils/reviewFormatting.d.ts",
+      "import": "./dist/lib/utils/reviewFormatting.js",
+      "require": "./dist/lib/utils/reviewFormatting.cjs"
+    },
+    "./lib/server/googleReviews": {
+      "types": "./dist/lib/server/googleReviews.d.ts",
+      "import": "./dist/lib/server/googleReviews.js",
+      "require": "./dist/lib/server/googleReviews.cjs"
+    },
+    "./server/googleReviewsHandler": {
+      "types": "./dist/server/googleReviewsHandler.d.ts",
+      "import": "./dist/server/googleReviewsHandler.js",
+      "require": "./dist/server/googleReviewsHandler.cjs"
+    },
     "./styles.css": "./dist/styles/google-reviews.css"
   },
   "scripts": {
