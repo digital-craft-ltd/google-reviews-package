@@ -41,10 +41,11 @@
   },
   "scripts": {
     "build": "tsup --config tsup.config.ts && tsc -p tsconfig.build.json",
+    "verify:dist": "node scripts/verify-dist.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm run build && npm run verify:dist && npm test"
   },
   "keywords": [
     "astro",
