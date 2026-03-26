@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+	buildGoogleReviewsRequestUrl,
 	buildReviewsUrl,
 	createFallbackData,
 	formatRatingDisplay,
@@ -37,6 +38,55 @@ describe('reviewFormatting utilities', () => {
 
 	it('falls back to derived url when explicit url missing', () => {
 		expect(resolveReviewsUrl('xyz')).toMatch('placeid=xyz');
+	});
+
+	it('omits the default english languageCode from api request urls', () => {
+		expect(
+			buildGoogleReviewsRequestUrl({
+				endpoint: '/api/google-reviews',
+				origin: 'https://example.com',
+				placeId: 'abc123',
+				languageCode: 'en',
+			}),
+		).toBe('https://example.com/api/google-reviews?placeId=abc123');
+	});
+
+	it('includes non-default languageCode values in api request urls', () => {
+		expect(
+			buildGoogleReviewsRequestUrl({
+				endpoint: '/api/google-reviews',
+				origin: 'https://example.com',
+				placeId: 'abc123',
+				languageCode: 'fr',
+			}),
+		).toBe('https://example.com/api/google-reviews?placeId=abc123&languageCode=fr');
+	});
+
+	it('treats case and spacing variants of english as the default request shape', () => {
+		expect(
+			buildGoogleReviewsRequestUrl({
+				endpoint: '/api/google-reviews/',
+				origin: 'https://example.com',
+				placeId: 'abc123',
+				languageCode: ' EN ',
+				businessName: 'Demo Co',
+			}),
+		).toBe('https://example.com/api/google-reviews/?placeId=abc123&businessName=Demo+Co');
+	});
+
+	it('preserves existing endpoint query params while canonicalizing default english requests', () => {
+		const requestUrl = buildGoogleReviewsRequestUrl({
+			endpoint: '/api/google-reviews?source=widget',
+			origin: 'https://example.com',
+			placeId: 'abc123',
+			languageCode: 'en',
+		});
+
+		const parsed = new URL(requestUrl);
+		expect(parsed.origin + parsed.pathname).toBe('https://example.com/api/google-reviews');
+		expect(parsed.searchParams.get('source')).toBe('widget');
+		expect(parsed.searchParams.get('placeId')).toBe('abc123');
+		expect(parsed.searchParams.has('languageCode')).toBe(false);
 	});
 
 	it('creates fallback data when rating provided', () => {

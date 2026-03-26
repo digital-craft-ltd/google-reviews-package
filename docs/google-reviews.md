@@ -35,6 +35,7 @@ import 'dc-google-reviews/styles.css';
 1. Component renders with fallback rating/count (optional) and embeds options in a data attribute.
 2. `<GoogleReviewInlineScript />` (added to the layout) loads once, scans for `[data-google-reviews-options]`, and initialises each instance with `initGoogleReviews`.
 3. Client helper fetches `/api/google-reviews` with the provided place ID when the page becomes interactive (and again if the tab becomes visible while showing fallback data).
+   - For the default English feed, the client omits `languageCode=en` so host apps do not split edge caches across semantically equivalent URL variants.
 4. Your `/api/google-reviews` route (powered by `googleReviewsHandler`) calls `getGoogleReviewSnapshot`:
    - Reads from cache (Vercel KV or in-memory fallback) with a default TTL of 24h.
    - Fetches fresh data from the Google Places API (New) when needed.

@@ -81,4 +81,4 @@ export const GET = googleReviewsHandler;
 - Schedule a Vercel cron hitting `https://<deploy-domain>/api/google-reviews?placeId=<ID>&force=true` with `Authorization: Bearer <CRON_SECRET>` for daily refreshes.
 - Provide `fallbackRating`/`fallbackReviewCount` values during builds to avoid UI flicker on first paint.
 
-Detailed architecture, prop docs, and QA steps live in [`docs/google-reviews.md`](docs/google-reviews.md).
+Detailed architecture, prop docs, and QA steps live in [`docs/google-reviews.md`](docs/google-reviews.md). CI and release expectations live in [`docs/ci-cd.md`](docs/ci-cd.md).

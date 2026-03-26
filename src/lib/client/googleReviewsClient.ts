@@ -1,3 +1,5 @@
+import { buildGoogleReviewsRequestUrl } from '../utils/reviewFormatting';
+
 interface SelectorConfig {
 	rating: string;
 	star: string;
@@ -253,12 +255,15 @@ export default function initGoogleReviews(options: GoogleReviewsClientOptions) {
 
 	const fetchData = async () => {
 		try {
-			const url = new URL(endpoint, window.location.origin);
-			if (placeId) url.searchParams.set('placeId', placeId);
-			url.searchParams.set('languageCode', language);
 			const currentBusinessName = root.dataset.businessName?.trim() ?? initialBusinessName;
-			if (currentBusinessName) url.searchParams.set('businessName', currentBusinessName);
-			const response = await fetch(url.toString(), { signal: controller.signal });
+			const requestUrl = buildGoogleReviewsRequestUrl({
+				endpoint,
+				origin: window.location.origin,
+				placeId,
+				languageCode: language,
+				businessName: currentBusinessName,
+			});
+			const response = await fetch(requestUrl, { signal: controller.signal });
 			if (!response.ok) {
 				throw new Error(`Non-200 response ${response.status}`);
 			}
