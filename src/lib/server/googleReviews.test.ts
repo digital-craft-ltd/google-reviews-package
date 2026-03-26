@@ -18,6 +18,7 @@ const loadGoogleReviewsModule = async () => {
 beforeEach(() => {
 	globalThis.__GOOGLE_REVIEWS_CACHE__?.clear();
 	process.env.GOOGLE_PLACES_API_KEY = 'test-api-key';
+	delete process.env.GOOGLE_REVIEWS_CACHE_TTL;
 	delete process.env.KV_REST_API_URL;
 	delete process.env.KV_REST_API_TOKEN;
 	delete process.env.KV_REST_API_READ_ONLY_TOKEN;
@@ -25,6 +26,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+	delete process.env.GOOGLE_REVIEWS_CACHE_TTL;
 	vi.unstubAllGlobals();
 });
 
@@ -171,5 +173,79 @@ describe('googleReviews server cache', () => {
 		});
 
 		expect(fetchMock).toHaveBeenCalledTimes(2);
+	});
+
+	it('evicts stale in-memory cache entries after the TTL buffer', async () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date('2024-01-02T03:04:05.000Z'));
+		process.env.GOOGLE_REVIEWS_CACHE_TTL = '1';
+
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValueOnce(
+				makePlacesResponse({
+					rating: 4.8,
+					userRatingCount: 123,
+					displayName: { text: 'English Bistro' },
+					googleMapsUri: 'https://maps.example/en',
+				}),
+			)
+			.mockResolvedValueOnce(
+				makePlacesResponse(
+					{
+						error: {
+							message: 'Fresh snapshot unavailable',
+						},
+					},
+					{
+						status: 503,
+						statusText: 'Service Unavailable',
+					},
+				),
+			)
+			.mockResolvedValueOnce(
+				makePlacesResponse(
+					{
+						error: {
+							message: 'Fresh snapshot unavailable',
+						},
+					},
+					{
+						status: 503,
+						statusText: 'Service Unavailable',
+					},
+				),
+			);
+		vi.stubGlobal('fetch', fetchMock);
+
+		const { getGoogleReviewSnapshot } = await loadGoogleReviewsModule();
+
+		const freshSnapshot = await getGoogleReviewSnapshot('place-123', { languageCode: 'en' });
+		expect(freshSnapshot).toMatchObject({
+			data: {
+				languageCode: 'en',
+				source: 'fresh',
+			},
+		});
+
+		await vi.advanceTimersByTimeAsync(1500);
+
+		const fallbackSnapshot = await getGoogleReviewSnapshot('place-123', { languageCode: 'en' });
+		expect(fallbackSnapshot).toMatchObject({
+			data: {
+				languageCode: 'en',
+				source: 'fallback',
+			},
+			error: 'Google Places API error (503): Fresh snapshot unavailable',
+		});
+
+		await vi.advanceTimersByTimeAsync(1000);
+
+		await expect(getGoogleReviewSnapshot('place-123', { languageCode: 'en' })).rejects.toThrow(
+			'Google Places API error (503): Fresh snapshot unavailable',
+		);
+		expect(fetchMock).toHaveBeenCalledTimes(3);
+
+		vi.useRealTimers();
 	});
 });
