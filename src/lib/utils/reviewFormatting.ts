@@ -24,6 +24,39 @@ export const resolveReviewsUrl = (placeId?: string | null, explicitUrl?: string 
 	return buildReviewsUrl(placeId);
 };
 
+type GoogleReviewsRequestUrlOptions = {
+	endpoint: string;
+	origin: string;
+	placeId?: string | null;
+	languageCode?: string | null;
+	businessName?: string | null;
+};
+
+export const buildGoogleReviewsRequestUrl = ({
+	endpoint,
+	origin,
+	placeId,
+	languageCode,
+	businessName,
+}: GoogleReviewsRequestUrlOptions): string => {
+	const url = new URL(endpoint, origin);
+
+	if (placeId) {
+		url.searchParams.set('placeId', placeId);
+	}
+
+	const normalizedLanguageCode = languageCode?.trim();
+	if (normalizedLanguageCode && normalizedLanguageCode.toLowerCase() !== 'en') {
+		url.searchParams.set('languageCode', normalizedLanguageCode);
+	}
+
+	if (businessName) {
+		url.searchParams.set('businessName', businessName);
+	}
+
+	return url.toString();
+};
+
 type FallbackOptions = {
 	fallbackRating?: number;
 	fallbackReviewCount?: number;
