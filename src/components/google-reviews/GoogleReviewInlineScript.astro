@@ -2,8 +2,6 @@
 ---
 
 <script type="module">
-	import { buildGoogleReviewsRequestUrl } from '../../lib/utils/reviewFormatting';
-
 	const selector = '[data-google-reviews-options]';
 	const isDev = Boolean(import.meta.env?.DEV);
 
@@ -37,6 +35,33 @@
 
 	const template = (input, values) =>
 		input.replace(/\{(\w+)\}/g, (_, key) => (values[key] ?? ''));
+
+	const buildGoogleReviewsRequestUrl = ({
+		endpoint,
+		origin,
+		placeId,
+		languageCode,
+		businessName,
+	}) => {
+		const url = new URL(endpoint, origin);
+		const normalizedPlaceId = placeId?.trim();
+		const normalizedLanguageCode = languageCode?.trim();
+		const normalizedBusinessName = businessName?.trim();
+
+		if (normalizedPlaceId) {
+			url.searchParams.set('placeId', normalizedPlaceId);
+		}
+
+		if (normalizedLanguageCode && normalizedLanguageCode.toLowerCase() !== 'en') {
+			url.searchParams.set('languageCode', normalizedLanguageCode);
+		}
+
+		if (normalizedBusinessName) {
+			url.searchParams.set('businessName', normalizedBusinessName);
+		}
+
+		return url.toString();
+	};
 
 	function initGoogleReviews(options = {}) {
 		if (typeof window === 'undefined') return;

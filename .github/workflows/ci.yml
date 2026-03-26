@@ -48,6 +48,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Verify built package output
+        run: npm run verify:dist
+
       - name: Verify package tarball
         run: npm pack --dry-run
 
