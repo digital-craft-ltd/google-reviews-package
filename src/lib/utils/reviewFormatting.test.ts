@@ -74,6 +74,21 @@ describe('reviewFormatting utilities', () => {
 		).toBe('https://example.com/api/google-reviews/?placeId=abc123&businessName=Demo+Co');
 	});
 
+	it('preserves existing endpoint query params while canonicalizing default english requests', () => {
+		const requestUrl = buildGoogleReviewsRequestUrl({
+			endpoint: '/api/google-reviews?source=widget',
+			origin: 'https://example.com',
+			placeId: 'abc123',
+			languageCode: 'en',
+		});
+
+		const parsed = new URL(requestUrl);
+		expect(parsed.origin + parsed.pathname).toBe('https://example.com/api/google-reviews');
+		expect(parsed.searchParams.get('source')).toBe('widget');
+		expect(parsed.searchParams.get('placeId')).toBe('abc123');
+		expect(parsed.searchParams.has('languageCode')).toBe(false);
+	});
+
 	it('creates fallback data when rating provided', () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date('2024-01-02T03:04:05.000Z'));
