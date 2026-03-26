@@ -52,10 +52,15 @@ declare global {
 const inMemoryCache =
 	globalThis.__GOOGLE_REVIEWS_CACHE__ ?? (globalThis.__GOOGLE_REVIEWS_CACHE__ = new Map<string, CachePayload>());
 
-const getCacheKey = (placeId: string) => `${CACHE_PREFIX}${placeId}`;
+const normalizeLanguageCode = (languageCode?: string) => {
+	const normalized = languageCode?.trim().toLowerCase();
+	return normalized?.length ? normalized : 'en';
+};
+const getCacheKey = (placeId: string, languageCode?: string) =>
+	`${CACHE_PREFIX}${placeId}:${normalizeLanguageCode(languageCode)}`;
 
-async function readCache(placeId: string): Promise<CachePayload | null> {
-	const key = getCacheKey(placeId);
+async function readCache(placeId: string, languageCode?: string): Promise<CachePayload | null> {
+	const key = getCacheKey(placeId, languageCode);
 
 	if (isKvConfigured) {
 		const value = await kv.get<CachePayload>(key);
@@ -66,7 +71,7 @@ async function readCache(placeId: string): Promise<CachePayload | null> {
 }
 
 async function writeCache(placeId: string, payload: CachePayload): Promise<void> {
-	const key = getCacheKey(placeId);
+	const key = getCacheKey(placeId, payload.languageCode);
 
 	if (isKvConfigured) {
 		await kv.set(key, payload, { ex: CACHE_EXPIRY_BUFFER });
@@ -150,8 +155,8 @@ export async function getGoogleReviewSnapshot(
 	placeId: string,
 	options: SnapshotOptions = {},
 ): Promise<{ data: GoogleReviewSnapshot; error?: string }> {
-	const languageCode = options.languageCode ?? 'en';
-	const cached = await readCache(placeId);
+	const languageCode = normalizeLanguageCode(options.languageCode);
+	const cached = await readCache(placeId, languageCode);
 	const now = Date.now();
 	const staleThreshold = DEFAULT_TTL_SECONDS * 1000;
 	const isCachedFresh = cached ? now - new Date(cached.updatedAt).getTime() <= staleThreshold : false;
