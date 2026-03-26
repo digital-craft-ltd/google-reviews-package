@@ -17,20 +17,24 @@ const {
 	endpoint = '/api/google-reviews',
 } = Astro.props as Props;
 
-const resolvedPlaceId = placeId ?? import.meta.env.GOOGLE_PLACES_DEFAULT_PLACE_ID ?? '';
+const resolvedPlaceId = placeId ?? import.meta.env.GOOGLE_PLACES_DEFAULT_PLACE_ID;
+
+if (!resolvedPlaceId) {
+	throw new Error('GoogleReviewsBadge requires a placeId prop or GOOGLE_PLACES_DEFAULT_PLACE_ID env var.');
+}
 
 const badgeId = `google-reviews-badge-${Math.random().toString(36).slice(2, 10)}`;
 const initialBusinessName = businessName?.trim() ?? '';
 const ctaTemplate = ctaText ?? '{count} {label}';
 
 const badgeClientOptions = {
-id: badgeId,
- selectors: {
-    starsContainer: '.badge-stars',
-  },
-  ctaTemplate,
-  strings: {
-    ratingAvailable: 'Google rating {rating} out of 5 stars',
+	id: badgeId,
+	selectors: {
+		starsContainer: '.badge-stars',
+	},
+	ctaTemplate,
+	strings: {
+		ratingAvailable: 'Google rating {rating} out of 5 stars',
 		ratingPending: 'Google rating not available yet',
 		starsAvailable: 'Google rating {rating} out of 5 stars',
 		starsPending: 'Google rating not available yet',
@@ -60,7 +64,7 @@ if (initialReviewCountValue !== null) {
 		.replace('{label}', initialReviewCountLabel);
 } else {
 	if (ctaText) {
-	initialCtaText = ctaText && !ctaText.includes('{') ? ctaText : 'Leave a review';
+		initialCtaText = ctaText && !ctaText.includes('{') ? ctaText : 'Leave a review';
 	} else {
 		initialCtaText = 'Leave a review';
 	}
@@ -68,15 +72,15 @@ if (initialReviewCountValue !== null) {
 ---
 
 <section
-  id={badgeId}
-  class={`google-review-badge inline-flex flex-col gap-1 rounded-md border border-white/60 bg-white px-4 py-3 shadow-google-card ${className}`}
- data-place-id={resolvedPlaceId}
- data-language={languageCode}
- data-endpoint={endpoint}
- data-review-url={resolvedReviewUrl ?? ''}
- data-business-name={initialBusinessName}
- data-cta-template={ctaTemplate}
- data-google-reviews-options={JSON.stringify(badgeClientOptions)}
+	id={badgeId}
+	class={`google-review-badge inline-flex flex-col gap-1 rounded-md border border-white/60 bg-white px-4 py-3 shadow-google-card ${className}`}
+	data-place-id={resolvedPlaceId}
+	data-language={languageCode}
+	data-endpoint={endpoint}
+	data-review-url={resolvedReviewUrl ?? ''}
+	data-business-name={initialBusinessName}
+	data-cta-template={ctaTemplate}
+	data-google-reviews-options={JSON.stringify(badgeClientOptions)}
 >
 	<div class="flex items-center gap-2">
 		<span class="badge-google-icon block h-5 w-5" aria-hidden="true">

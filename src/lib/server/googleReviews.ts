@@ -44,13 +44,19 @@ export type GoogleReviewSnapshot = CachePayload & {
 	source: 'fresh' | 'cache' | 'fallback';
 };
 
+type InMemoryCacheEntry = {
+	payload: CachePayload;
+	expiresAt: number;
+};
+
 declare global {
 	// eslint-disable-next-line no-var
-	var __GOOGLE_REVIEWS_CACHE__: Map<string, CachePayload> | undefined;
+	var __GOOGLE_REVIEWS_CACHE__: Map<string, InMemoryCacheEntry> | undefined;
 }
 
 const inMemoryCache =
-	globalThis.__GOOGLE_REVIEWS_CACHE__ ?? (globalThis.__GOOGLE_REVIEWS_CACHE__ = new Map<string, CachePayload>());
+	globalThis.__GOOGLE_REVIEWS_CACHE__ ??
+	(globalThis.__GOOGLE_REVIEWS_CACHE__ = new Map<string, InMemoryCacheEntry>());
 
 const normalizeLanguageCode = (languageCode?: string) => {
 	const normalized = languageCode?.trim().toLowerCase();
@@ -67,7 +73,17 @@ async function readCache(placeId: string, languageCode?: string): Promise<CacheP
 		return value ?? null;
 	}
 
-	return inMemoryCache.get(key) ?? null;
+	const entry = inMemoryCache.get(key);
+	if (!entry) {
+		return null;
+	}
+
+	if (entry.expiresAt <= Date.now()) {
+		inMemoryCache.delete(key);
+		return null;
+	}
+
+	return entry.payload;
 }
 
 async function writeCache(placeId: string, payload: CachePayload): Promise<void> {
@@ -78,7 +94,10 @@ async function writeCache(placeId: string, payload: CachePayload): Promise<void>
 		return;
 	}
 
-	inMemoryCache.set(key, payload);
+	inMemoryCache.set(key, {
+		payload,
+		expiresAt: Date.now() + CACHE_EXPIRY_BUFFER * 1000,
+	});
 }
 
 type FetchOptions = {

@@ -10,8 +10,8 @@ const CACHE_HEADERS = {
 export const googleReviewsHandler: APIRoute = async ({ request }) => {
 	const url = new URL(request.url);
 	const placeIdParam = url.searchParams.get('placeId');
-	const placeId = typeof placeIdParam === 'string' && placeIdParam.trim().length > 0 ? placeIdParam : null;
-	const languageCode = url.searchParams.get('languageCode') ?? 'en';
+	const placeId = typeof placeIdParam === 'string' && placeIdParam.trim().length > 0 ? placeIdParam.trim() : null;
+	const languageCode = url.searchParams.get('languageCode')?.trim() || 'en';
 	const businessNameParam = url.searchParams.get('businessName');
 	const businessName = businessNameParam && businessNameParam.trim().length > 0 ? businessNameParam.trim() : undefined;
 	const forceParam = url.searchParams.get('force');
