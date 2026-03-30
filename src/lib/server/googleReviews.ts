@@ -23,7 +23,7 @@ const DEFAULT_TTL_SECONDS =
 	60 * 60 * 24; // 24h
 const CACHE_EXPIRY_BUFFER = DEFAULT_TTL_SECONDS * 2;
 const GOOGLE_API_BASE = 'https://places.googleapis.com/v1';
-const FIELD_MASK = 'rating,userRatingCount,displayName,googleMapsUri';
+const FIELD_MASK = 'rating,userRatingCount,displayName';
 const isKvConfigured = Boolean(
 	(env.KV_REST_API_URL || process.env.KV_REST_API_URL) &&
 		(env.KV_REST_API_TOKEN || process.env.KV_REST_API_TOKEN) &&
@@ -145,7 +145,6 @@ async function fetchFromGoogle({ placeId, languageCode, businessName }: FetchOpt
 	const rating = typeof data.rating === 'number' ? data.rating : 0;
 	const reviewCount = typeof data.userRatingCount === 'number' ? data.userRatingCount : 0;
 	const displayName = data.displayName?.text as string | undefined;
-	const googleMapsUri = typeof data.googleMapsUri === 'string' ? data.googleMapsUri : undefined;
 	const normalizedDisplayName = displayName?.trim().length ? displayName.trim() : undefined;
 	const normalizedInputName = businessName?.trim().length ? businessName.trim() : undefined;
 	const resolvedBusinessName = normalizedDisplayName ?? normalizedInputName;
@@ -156,7 +155,7 @@ async function fetchFromGoogle({ placeId, languageCode, businessName }: FetchOpt
 		languageCode,
 		rating,
 		reviewCount,
-		reviewsUrl: googleMapsUri ?? buildReviewsUrl(placeId),
+		reviewsUrl: buildReviewsUrl(placeId),
 		updatedAt: new Date().toISOString(),
 	};
 }

@@ -65,6 +65,28 @@ describe('googleReviews server cache', () => {
 		expect(fetchMock).toHaveBeenCalledTimes(1);
 	});
 
+	it('always returns the place-id reviews page url even when Google returns a maps uri', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(
+			makePlacesResponse({
+				rating: 4.8,
+				userRatingCount: 123,
+				displayName: { text: 'English Bistro' },
+				googleMapsUri: 'https://maps.example/en',
+			}),
+		);
+		vi.stubGlobal('fetch', fetchMock);
+
+		const { getGoogleReviewSnapshot } = await loadGoogleReviewsModule();
+		const snapshot = await getGoogleReviewSnapshot('place-123', { languageCode: 'en' });
+
+		expect(snapshot).toMatchObject({
+			data: {
+				reviewsUrl: 'https://search.google.com/local/reviews?placeid=place-123',
+				source: 'fresh',
+			},
+		});
+	});
+
 	it('keeps locale-specific cache entries isolated across languages', async () => {
 		const fetchMock = vi
 			.fn()

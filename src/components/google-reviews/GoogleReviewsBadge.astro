@@ -25,7 +25,7 @@ if (!resolvedPlaceId) {
 
 const badgeId = `google-reviews-badge-${Math.random().toString(36).slice(2, 10)}`;
 const initialBusinessName = businessName?.trim() ?? '';
-const ctaTemplate = ctaText ?? '{count} {label}';
+const ctaTemplate = ctaText ?? 'Read our {count} {label}';
 
 const badgeClientOptions = {
 	id: badgeId,
@@ -39,7 +39,7 @@ const badgeClientOptions = {
 		starsAvailable: 'Google rating {rating} out of 5 stars',
 		starsPending: 'Google rating not available yet',
 		noReviewsText: 'No reviews yet',
-		noReviewsCtaText: 'Leave a review',
+		noReviewsCtaText: 'Read our reviews',
 	},
 };
 
@@ -64,9 +64,9 @@ if (initialReviewCountValue !== null) {
 		.replace('{label}', initialReviewCountLabel);
 } else {
 	if (ctaText) {
-		initialCtaText = ctaText && !ctaText.includes('{') ? ctaText : 'Leave a review';
+		initialCtaText = ctaText && !ctaText.includes('{') ? ctaText : 'Read our reviews';
 	} else {
-		initialCtaText = 'Leave a review';
+		initialCtaText = 'Read our reviews';
 	}
 }
 ---

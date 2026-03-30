@@ -61,3 +61,16 @@
 .google-review-widget [data-updated-at] {
 	color: rgb(100 116 139 / 0.9);
 }
+
+.google-review-widget [data-review-link],
+.google-review-badge [data-review-link] {
+	color: #1a73e8;
+	transition: color 160ms ease;
+}
+
+.google-review-widget [data-review-link]:hover,
+.google-review-widget [data-review-link]:focus-visible,
+.google-review-badge [data-review-link]:hover,
+.google-review-badge [data-review-link]:focus-visible {
+	color: #1557b0;
+}
