@@ -64,16 +64,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Explicit pairs, not a cross product: astro 7 requires node >=22.12.0,
-        # so it has no node 20 leg. Every major in the `astro` peer range must
-        # appear here - the range is only as honest as what CI actually builds.
+        # Explicit pairs, not a cross product. Astro dropped node 20 in 6.1.0, so
+        # astro 6 and 7 have no node 20 leg - astro 6.0.x still advertises
+        # `^20.19.1` in engines but its CLI rejects node 20 at runtime anyway.
+        # Every major in the `astro` peer range must appear here: the range is
+        # only as honest as what CI actually builds.
         include:
           - node: 20
             astro: 5
           - node: 22
             astro: 5
-          - node: 20
-            astro: 6
           - node: 22
             astro: 6
           - node: 22

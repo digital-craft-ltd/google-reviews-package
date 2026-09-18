@@ -18,7 +18,7 @@ The validation matrix runs on Node.js 20 and 22. The production dependency audit
 
 A second `consumer` job builds a throwaway Astro app against every major in the `astro` peer range (`npm run verify:consumer -- <major>`) and asserts the components install, type-check, build, and render there. The package build copies `.astro` files verbatim rather than compiling them, so this job is the only thing that actually proves Astro compatibility.
 
-Its matrix is a list of explicit Node/Astro pairs rather than a cross product, because Astro 7 requires Node >=22.12.0 and has no Node 20 leg. **Any major added to the `astro` peer range must be added to this matrix in the same change** - a peer range advertising an untested major is worse than a narrow one.
+Its matrix is a list of explicit Node/Astro pairs rather than a cross product, because Astro 6 and 7 require Node >=22.12.0 and have no Node 20 leg. (Astro dropped Node 20 in 6.1.0. Astro 6.0.x still advertises `^20.19.1` in its `engines` field, but its CLI rejects Node 20 at runtime, so npm's engine-aware resolution does not produce a working install either.) **Any major added to the `astro` peer range must be added to this matrix in the same change** - a peer range advertising an untested major is worse than a narrow one.
 
 ## Merge Policy
 

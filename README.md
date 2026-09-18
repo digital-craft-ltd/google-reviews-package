@@ -32,7 +32,7 @@ Reusable Google Reviews components, helpers, and API handler for Astro projects.
 npm install dc-google-reviews
 ```
 
-Supports Astro 5, 6, and 7. Each major is built and rendered against in CI.
+Supports Astro 5, 6, and 7 - each major is built and rendered against in CI. Note that Astro itself requires Node >=22.12.0 from 6.1.0 onward, so Astro 6 and 7 consumers need Node 22.12 or newer.
 
 ```astro
 ---
