@@ -71,5 +71,10 @@
   },
   "dependencies": {
     "@upstash/redis": "^1.38.4"
+  },
+  "allowScripts": {
+    "esbuild": false,
+    "sharp": false,
+    "fsevents": false
   }
 }

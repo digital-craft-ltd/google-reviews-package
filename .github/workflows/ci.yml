@@ -92,3 +92,43 @@ jobs:
 
       - name: Build a consumer app against Astro ${{ matrix.astro }}
         run: npm run verify:consumer -- ${{ matrix.astro }}
+
+  npm12:
+    name: npm 12 install defaults
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.22'
+          cache: npm
+
+      # npm 12 turns off dependency lifecycle scripts by default. The rest of CI
+      # runs on the node-bundled npm, which ignores `allowScripts` entirely, so
+      # this leg is the only thing proving the package still installs and builds
+      # under the new defaults - and on linux, where the prebuilt binaries differ
+      # from a local macos tree.
+      - name: Install npm 12
+        run: npm install -g npm@12
+
+      - name: Report npm version
+        run: npm --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify built package output
+        run: npm run verify:dist

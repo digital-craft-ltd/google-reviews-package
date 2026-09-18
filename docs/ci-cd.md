@@ -20,6 +20,10 @@ A second `consumer` job builds a throwaway Astro app against every major in the 
 
 Its matrix lists one leg per Astro major. (Astro dropped Node 20 in 6.1.0. Astro 6.0.x still advertises `^20.19.1` in its `engines` field, but its CLI rejects Node 20 at runtime, so npm's engine-aware resolution does not produce a working install either - which is why Node 20 is no longer in either matrix.) **Any major added to the `astro` peer range must be added to this matrix in the same change** - a peer range advertising an untested major is worse than a narrow one.
 
+A third `npm 12 install defaults` job installs npm 12 explicitly and runs the build. npm 12 turns dependency lifecycle scripts off by default; the other jobs use the Node-bundled npm, which ignores the `allowScripts` field entirely, so this job is the only thing that exercises it - and it does so on Linux, where prebuilt binaries differ from a local macOS tree.
+
+`allowScripts` in `package.json` denies every install script in the tree (`esbuild`, `sharp`, `fsevents`). None of them are needed: all three ship prebuilt binaries via optional dependencies, and their install scripts are fallbacks. The entries are deliberately unpinned so a dependency bump does not silently reopen them as pending. If a future dependency genuinely needs its install script, that job fails and the entry should be added as `"<pkg>": true` with a note explaining why.
+
 ## Merge Policy
 
 - Prefer pull requests over direct pushes to `main`.
