@@ -37,7 +37,7 @@ import 'dc-google-reviews/styles.css';
 3. Client helper fetches `/api/google-reviews` with the provided place ID when the page becomes interactive (and again if the tab becomes visible while showing fallback data).
    - For the default English feed, the client omits `languageCode=en` so host apps do not split edge caches across semantically equivalent URL variants.
 4. Your `/api/google-reviews` route (powered by `googleReviewsHandler`) calls `getGoogleReviewSnapshot`:
-   - Reads from cache (Vercel KV or in-memory fallback) with a default TTL of 24h.
+   - Reads from cache (Upstash Redis or in-memory fallback) with a default TTL of 24h.
    - Fetches fresh data from the Google Places API (New) when needed.
    - Returns JSON payload with rating, review count, source, metadata, and cache age.
 5. Client helper updates DOM fields and dispatches a `google-reviews:update` event (contains `placeId`, `businessName`, and `data`).
@@ -50,7 +50,8 @@ import 'dc-google-reviews/styles.css';
 | `GOOGLE_PLACES_DEFAULT_PLACE_ID` | ⛔️ | Optional fallback place ID used when components omit `placeId`. |
 | `GOOGLE_REVIEWS_CACHE_TTL` | ⛔️ | Cache lifetime in seconds (default 86400 / 24h). |
 | `CRON_SECRET` | ⛔️ | Shared secret used for forced refresh requests. Passed via `Authorization: Bearer <CRON_SECRET>`. |
-| `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `KV_REST_API_READ_ONLY_TOKEN` | ⛔️ | Added automatically when Vercel KV is connected. Used for persistent caching. |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `KV_REST_API_READ_ONLY_TOKEN` | ⛔️ | Upstash Redis credentials used for persistent caching. Populated automatically by the Vercel Upstash integration. All three must be set to enable the Redis cache. |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `UPSTASH_REDIS_REST_READ_ONLY_TOKEN` | ⛔️ | Fallback names, read only when the `KV_REST_API_*` equivalents are unset. Use these when provisioning Upstash directly. |
 
 Add the same values to Vercel project settings before deploying. The `.env.example` file documents every variable.
 

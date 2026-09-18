@@ -40,7 +40,7 @@ export default defineConfig({
 		options.external = [
 			...(options.external ?? []),
 			'astro',
-			'@vercel/kv',
+			'@upstash/redis',
 			'./components/google-reviews/GoogleReviewInlineScript.astro',
 			'./components/google-reviews/GoogleReviewsWidget.astro',
 			'./components/google-reviews/GoogleReviewsBadge.astro',

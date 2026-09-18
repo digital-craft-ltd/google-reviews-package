@@ -32,6 +32,8 @@ Reusable Google Reviews components, helpers, and API handler for Astro projects.
 npm install dc-google-reviews
 ```
 
+Supports Astro 5, 6, and 7. Each major is built and rendered against in CI.
+
 ```astro
 ---
 import {
@@ -77,7 +79,7 @@ export const GET = googleReviewsHandler;
 
 - Create a **server-side** Google Places API key with the Places API (New) enabled. Lock it down to your hosting IP/compute provider with Google Cloud restrictions.
 - Set `GOOGLE_PLACES_API_KEY`, `GOOGLE_PLACES_DEFAULT_PLACE_ID`, `GOOGLE_REVIEWS_CACHE_TTL`, and `CRON_SECRET` in `.env` (and mirror them in your hosting platform, e.g. Vercel). Never embed the API key in client bundles.
-- Attach [Vercel KV](https://vercel.com/docs/storage/vercel-kv/quickstart) so cached payloads persist across deployments.
+- Attach [Upstash Redis](https://upstash.com/docs/redis/overall/getstarted) so cached payloads persist across deployments. On Vercel, the Upstash marketplace integration populates the `KV_REST_API_*` variables for you.
 - Schedule a Vercel cron hitting `https://<deploy-domain>/api/google-reviews?placeId=<ID>&force=true` with `Authorization: Bearer <CRON_SECRET>` for daily refreshes.
 - Provide `fallbackRating`/`fallbackReviewCount` values during builds to avoid UI flicker on first paint.
 
