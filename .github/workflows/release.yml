@@ -67,8 +67,29 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      # prepublishOnly also runs build + verify:dist + test as a release gate.
+      - name: Test
+        run: npm test
+
+      # Built explicitly rather than leaning on prepublishOnly. `npm stage
+      # publish` packs the working directory, and dist/ is gitignored - if that
+      # hook did not fire we would stage a package with no dist/ at all.
+      - name: Build
+        run: npm run build
+
+      - name: Verify built package output
+        run: npm run verify:dist
+
+      # Staged, not published. The trusted publisher is configured stage-only,
+      # which is npm's recommended posture: CI stages without 2FA, then a human
+      # approves with proof-of-presence before anything goes public.
+      #
+      # Approve at npmjs.com - NOT `npm stage approve`, which prompts for a TOTP
+      # code the maintainer's passkey cannot provide.
+      #
       # No --provenance flag: npm generates provenance automatically when
       # publishing via trusted publishing from a public repo.
-      - name: Publish
-        run: npm publish
+      - name: Stage publish
+        run: npm stage publish
+
+      - name: Report staged versions
+        run: npm stage list dc-google-reviews || true
