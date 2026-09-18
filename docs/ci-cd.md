@@ -33,10 +33,33 @@ A third `npm 12 install defaults` job installs npm 12 explicitly and runs the bu
 
 ## Release Policy
 
+Releases publish through **trusted publishing** (GitHub Actions OIDC) in `.github/workflows/release.yml`. There is no npm token in the repository, in CI secrets, or on any maintainer machine: npm verifies the workflow's OIDC claims against the trusted publisher configured on the package and mints a short-lived credential for that one publish.
+
+This is not only a hardening measure. The maintainer account uses a **passkey** for 2FA, and npm's CLI publish prompt accepts only a TOTP code or a 64-character hex token - it has no WebAuthn flow (`lib/utils/read-user-info.js` validates against `/^[\d ]+$|^[A-Fa-f0-9]{64,64}$/`). A local `npm publish` therefore cannot be completed interactively at all. CI is the only publishing path.
+
+To cut a release:
+
 - Publish from `main` only after the CI workflow is green.
-- Keep `prepublishOnly` intact so local and CI release flows both require a successful build and test run.
-- Bump versions explicitly with SemVer and push the tag only after CI passes on the release commit.
-- Confirm `npm whoami` resolves before publishing; npm session tokens expire and the failure otherwise surfaces only at `npm publish`.
+- Bump the version explicitly with SemVer and merge it to `main`.
+- Tag the release commit and push the tag: `git tag v1.2.3 && git push origin v1.2.3`.
+- The `Release` workflow verifies the tag matches `package.json`, typechecks, and publishes. A tag that disagrees with `package.json` fails the run rather than publishing an unexpected version.
+- Keep `prepublishOnly` intact; it runs build, `verify:dist`, and the test suite as the final gate inside the publish step.
+
+### Trusted publisher configuration
+
+Configured once on npmjs.com, under the package's Settings, and it must match the workflow exactly:
+
+| Field | Value |
+| --- | --- |
+| Publisher | GitHub Actions |
+| Organization or user | `Davidiborra` |
+| Repository | `google-reviews-package` |
+| Workflow filename | `release.yml` |
+| Environment | *(leave empty)* |
+
+If the workflow file is ever renamed, or an `environment:` is added to the publish job, the npm-side configuration must be updated in the same change or every release will fail with an OIDC claim mismatch.
+
+The workflow installs npm 12 before publishing: Node 22.22 bundles npm 10.9.x, which has no OIDC support, and trusted publishing requires npm >= 11.5.1.
 
 ## Enforcement Note
 
