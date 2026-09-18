@@ -23,8 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         node:
-          - 20
-          - 22
+          - '22.22'
 
     steps:
       - name: Checkout
@@ -55,7 +54,6 @@ jobs:
         run: npm pack --dry-run
 
       - name: Audit production dependencies
-        if: matrix.node == 20
         run: npm audit --omit=dev
 
   consumer:
@@ -64,19 +62,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Explicit pairs, not a cross product. Astro dropped node 20 in 6.1.0, so
-        # astro 6 and 7 have no node 20 leg - astro 6.0.x still advertises
-        # `^20.19.1` in engines but its CLI rejects node 20 at runtime anyway.
         # Every major in the `astro` peer range must appear here: the range is
-        # only as honest as what CI actually builds.
+        # only as honest as what CI actually builds. Node is pinned to one
+        # version across all legs - astro dropped node 20 in 6.1.0, so astro 6
+        # and 7 require >=22.12.0 and a mixed node matrix cannot cover them.
         include:
-          - node: 20
+          - node: '22.22'
             astro: 5
-          - node: 22
-            astro: 5
-          - node: 22
+          - node: '22.22'
             astro: 6
-          - node: 22
+          - node: '22.22'
             astro: 7
 
     steps:
