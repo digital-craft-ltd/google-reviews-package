@@ -90,6 +90,3 @@ jobs:
       # publishing via trusted publishing from a public repo.
       - name: Stage publish
         run: npm stage publish
-
-      - name: Report staged versions
-        run: npm stage list dc-google-reviews || true
