@@ -56,13 +56,23 @@ Configured once on npmjs.com, under the package's Settings, and it must match th
 | Repository | `google-reviews-package` |
 | Workflow filename | `release.yml` |
 | Environment | *(leave empty)* |
-| Allowed actions | **must include `npm publish`** |
+| Allowed actions | **leave direct publish unchecked** (stage-only) |
 
-**The `Allowed actions` field matters.** Trusted publisher configurations created after 2026-09-03 default to allowing `npm stage publish` only. If direct publishing is not explicitly permitted, `release.yml` fails even with everything else correct. Either enable direct `npm publish`, or switch the workflow's publish step to `npm stage publish` and approve each release on npmjs.com.
+**Stage-only is deliberate.** npm's own UI marks direct publishing as "Not recommended", and the workflow runs `npm stage publish` to match. CI stages a version without any 2FA prompt; nothing is public until a human approves it with proof-of-presence. If direct publish were enabled here, the workflow would still stage - the two must be changed together.
 
 If the workflow file is ever renamed, or an `environment:` is added to the publish job, the npm-side configuration must be updated in the same change or every release will fail with an OIDC claim mismatch.
 
 Requirements, both checked by the workflow: trusted publishing needs **npm >= 11.5.1** and **Node >= 22.14.0**. Node 22.22 clears the Node floor but bundles npm 10.9.x, which has no OIDC support, so the workflow installs npm 12 before publishing.
+
+### Approving a staged release
+
+`release.yml` stages; it never publishes. After a green run the version exists on the registry but is not publicly installable until approved.
+
+**Approve on npmjs.com**, on the package's page under the staged versions section. Do *not* use `npm stage approve <stage-id>` from a terminal: it requires 2FA proof-of-presence, and the CLI prompt accepts only a TOTP code or a 64-character hex token. The maintainer account uses a passkey, which the CLI cannot satisfy - the same wall that forced trusted publishing in the first place. The website accepts the passkey.
+
+`npm stage list dc-google-reviews` needs no 2FA and is safe to run locally to see what is pending; the release workflow also prints it as its final step.
+
+A staged version occupies its semver slot: a version that exists as a staged version cannot be published again, so a rejected release needs a new version number rather than a re-run of the same tag.
 
 ### Diagnosing a failed release
 
