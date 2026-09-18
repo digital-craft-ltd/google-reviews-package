@@ -56,10 +56,17 @@ Configured once on npmjs.com, under the package's Settings, and it must match th
 | Repository | `google-reviews-package` |
 | Workflow filename | `release.yml` |
 | Environment | *(leave empty)* |
+| Allowed actions | **must include `npm publish`** |
+
+**The `Allowed actions` field matters.** Trusted publisher configurations created after 2026-09-03 default to allowing `npm stage publish` only. If direct publishing is not explicitly permitted, `release.yml` fails even with everything else correct. Either enable direct `npm publish`, or switch the workflow's publish step to `npm stage publish` and approve each release on npmjs.com.
 
 If the workflow file is ever renamed, or an `environment:` is added to the publish job, the npm-side configuration must be updated in the same change or every release will fail with an OIDC claim mismatch.
 
-The workflow installs npm 12 before publishing: Node 22.22 bundles npm 10.9.x, which has no OIDC support, and trusted publishing requires npm >= 11.5.1.
+Requirements, both checked by the workflow: trusted publishing needs **npm >= 11.5.1** and **Node >= 22.14.0**. Node 22.22 clears the Node floor but bundles npm 10.9.x, which has no OIDC support, so the workflow installs npm 12 before publishing.
+
+### Diagnosing a failed release
+
+`npm error code E404 ... PUT https://registry.npmjs.org/dc-google-reviews` at the publish step means npm did **not** authenticate via OIDC and fell back to a token. The npm CLI tries OIDC first and only falls back, so a 404 here almost always means the trusted publisher is missing, its claims do not match the workflow, or direct `npm publish` is not among its allowed actions - not that the workflow is broken. `actions/setup-node` with `registry-url` always sets a placeholder `NODE_AUTH_TOKEN`; that is expected and is not the cause.
 
 ## Enforcement Note
 
