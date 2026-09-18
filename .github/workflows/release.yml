@@ -34,10 +34,12 @@ jobs:
         with:
           node-version: '22.22'
           registry-url: 'https://registry.npmjs.org'
-          cache: npm
+          # npm's trusted-publishing docs: never use caching in release builds.
+          package-manager-cache: false
 
-      # Node 22.22 bundles npm 10.9.x, which has no OIDC support. Trusted
-      # publishing needs npm >= 11.5.1.
+      # Trusted publishing requires npm >= 11.5.1 and node >= 22.14.0. Node
+      # 22.22 clears the node floor but bundles npm 10.9.x, which has no OIDC
+      # support at all, so the CLI must be upgraded before publishing.
       - name: Install npm 12
         run: npm install -g npm@12
 
@@ -66,5 +68,7 @@ jobs:
         run: npm run typecheck
 
       # prepublishOnly also runs build + verify:dist + test as a release gate.
+      # No --provenance flag: npm generates provenance automatically when
+      # publishing via trusted publishing from a public repo.
       - name: Publish
         run: npm publish
