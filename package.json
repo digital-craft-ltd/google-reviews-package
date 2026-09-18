@@ -1,6 +1,6 @@
 {
   "name": "dc-google-reviews",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "type": "module",
   "description": "Reusable Google Reviews widgets + API helpers for Astro projects.",
   "license": "MIT",
@@ -42,6 +42,7 @@
   "scripts": {
     "build": "tsup --config tsup.config.ts && tsc -p tsconfig.build.json",
     "verify:dist": "node scripts/verify-dist.mjs",
+    "verify:consumer": "node scripts/verify-astro-consumer.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -59,16 +60,16 @@
     "access": "public"
   },
   "peerDependencies": {
-    "astro": "^5.0.0"
-  },
-  "dependencies": {
-    "@vercel/kv": "^1.0.1"
+    "astro": "^5.0.0 || ^6.0.0 || ^7.0.0"
   },
   "devDependencies": {
-    "astro": "^5.15.1",
     "@types/node": "^20.14.10",
+    "astro": "^5.15.1",
     "tsup": "^8.0.2",
     "typescript": "^5.5.4",
     "vitest": "^1.6.0"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.38.4"
   }
 }
