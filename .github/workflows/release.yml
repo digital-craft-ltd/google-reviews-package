@@ -1,0 +1,70 @@
+name: Release
+
+# Publishes to npm via trusted publishing (GitHub Actions OIDC). There is no
+# npm token anywhere: npm verifies the OIDC claims below against the trusted
+# publisher configured on the package, and mints a short-lived credential.
+#
+# This exists because the maintainer account uses a passkey for 2FA, and npm's
+# CLI publish prompt only accepts a TOTP code or a 64-char hex token - it has no
+# WebAuthn flow. So a local `npm publish` can never be completed interactively.
+#
+# Trigger: push a tag matching v*, e.g. `git tag v0.3.0 && git push origin v0.3.0`.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.22'
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+
+      # Node 22.22 bundles npm 10.9.x, which has no OIDC support. Trusted
+      # publishing needs npm >= 11.5.1.
+      - name: Install npm 12
+        run: npm install -g npm@12
+
+      - name: Report toolchain
+        run: |
+          echo "node $(node -v)"
+          echo "npm  $(npm -v)"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # A tag that disagrees with package.json would publish a version nobody
+      # expects, under a tag pointing at different contents.
+      - name: Verify tag matches package.json version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          echo "tag: $TAG_VERSION / package.json: $PKG_VERSION"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $PKG_VERSION"
+            exit 1
+          fi
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # prepublishOnly also runs build + verify:dist + test as a release gate.
+      - name: Publish
+        run: npm publish
