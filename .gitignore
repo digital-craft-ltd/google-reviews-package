@@ -27,3 +27,7 @@ pnpm-debug.log*
 
 # claude code
 .claude/
+
+# maintainer-only release notes
+docs/ci-cd.md
+docs/pr-001.md

@@ -91,4 +91,4 @@ GET /api/google-reviews?placeId=<PLACE_ID>&force=true
 Authorization: Bearer <CRON_SECRET>
 ```
 
-Detailed architecture, prop docs, and QA steps live in the [technical documentation](https://github.com/digital-craft-ltd/google-reviews-package/blob/main/docs/google-reviews.md). CI and release expectations live in the [CI and release documentation](https://github.com/digital-craft-ltd/google-reviews-package/blob/main/docs/ci-cd.md).
+Detailed architecture, prop docs, and QA steps live in the [technical documentation](https://github.com/digital-craft-ltd/google-reviews-package/blob/main/docs/google-reviews.md).
