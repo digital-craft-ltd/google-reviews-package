@@ -30,6 +30,8 @@ import 'dc-google-reviews/styles.css';
 ---
 ```
 
+The `/api/google-reviews` route is rendered on demand and requires an [Astro server adapter](https://docs.astro.build/en/guides/on-demand-rendering/) appropriate to your deployment platform. The components use Tailwind utility classes for layout and typography; the package CSS covers shared review-specific styling, so projects without Tailwind must provide equivalent layout and typography styles.
+
 ## Data Flow
 
 1. Component renders with fallback rating/count (optional) and embeds options in a data attribute.
@@ -37,9 +39,10 @@ import 'dc-google-reviews/styles.css';
 3. Client helper fetches `/api/google-reviews` with the provided place ID when the page becomes interactive (and again if the tab becomes visible while showing fallback data).
    - For the default English feed, the client omits `languageCode=en` so host apps do not split edge caches across semantically equivalent URL variants.
 4. Your `/api/google-reviews` route (powered by `googleReviewsHandler`) calls `getGoogleReviewSnapshot`:
-   - Reads from cache (Upstash Redis or in-memory fallback) with a default TTL of 24h.
-   - Fetches fresh data from the Google Places API (New) when needed.
-   - Returns JSON payload with rating, review count, source, metadata, and cache age.
+   - Returns fresh cached data for 24h by default; after that, a normal request attempts to refresh it.
+   - If the refresh fails, returns the cached value as stale fallback while the cache entry remains available, for up to another 24h by default.
+   - Uses in-memory cache local to the server process unless Redis is configured; Redis cache persists across instances and deployments.
+   - Returns JSON payload with rating, review count, source, and metadata.
 5. Client helper updates DOM fields and dispatches a `google-reviews:update` event (contains `placeId`, `businessName`, and `data`).
 
 ## Environment Variables
@@ -48,14 +51,14 @@ import 'dc-google-reviews/styles.css';
 | --- | --- | --- |
 | `GOOGLE_PLACES_API_KEY` | ✅ | Server-side API key with access to the Places API (New). |
 | `GOOGLE_PLACES_DEFAULT_PLACE_ID` | ⛔️ | Optional fallback place ID used when components omit `placeId`. |
-| `GOOGLE_REVIEWS_CACHE_TTL` | ⛔️ | Cache lifetime in seconds (default 86400 / 24h). |
-| `CRON_SECRET` | ⛔️ | Shared secret used for forced refresh requests. Passed via `Authorization: Bearer <CRON_SECRET>`. |
-| `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `KV_REST_API_READ_ONLY_TOKEN` | ⛔️ | Upstash Redis credentials used for persistent caching. Populated automatically by the Vercel Upstash integration. All three must be set to enable the Redis cache. |
-| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `UPSTASH_REDIS_REST_READ_ONLY_TOKEN` | ⛔️ | Fallback names, read only when the `KV_REST_API_*` equivalents are unset. Use these when provisioning Upstash directly. |
+| `GOOGLE_REVIEWS_CACHE_TTL` | ⛔️ | Optional cache freshness lifetime in seconds (default 86400 / 24h). Entries are retained for twice this duration for stale fallback. |
+| `CRON_SECRET` | ⛔️ | Optional secret required for forced refresh requests. Passed via `Authorization: Bearer <CRON_SECRET>`. |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `KV_REST_API_READ_ONLY_TOKEN` | ⛔️ | Optional Redis credentials for persistent caching. All three must be set to enable Redis. |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `UPSTASH_REDIS_REST_READ_ONLY_TOKEN` | ⛔️ | Optional fallback names, read only when the `KV_REST_API_*` equivalents are unset. |
 
-Add the same values to Vercel project settings before deploying. The `.env.example` file documents every variable.
+`GOOGLE_PLACES_API_KEY` is required. Set environment values in the local environment and hosting platform as appropriate. The `.env.example` file lists the supported variables.
 
-> ⚠️ Always use a server-only Google Places API key locked to your server IP range or VPC. Never expose this key in a client bundle or commit it to source control.
+> ⚠️ Keep the Google Places API key server-side. Never expose it in a client bundle or commit it to source control.
 
 ## Server Endpoint
 
@@ -159,32 +162,25 @@ Props mirror the widget but omit layout-specific fields:
 
 ### Customisation
 
-- Both components expose `class` to customize container styles. Only minimal inline styles are baked in (rounded white card, gaps, font weight).
+- Both components expose `class` to customize container styles. Their markup uses Tailwind utility classes for layout and typography; the package CSS covers shared review-specific styling. Projects without Tailwind should provide equivalent styles.
 - Inject custom strings by overriding `ctaText` (widget) or by providing `strings` via `data-google-reviews-options` if building your own element.
 
-## Cron / Cache Refresh Strategy
+## Optional Scheduled Refresh
 
-1. Set `CRON_SECRET` in Vercel and `.env`.
-2. Add `vercel.json` with:
+Normal widget requests refresh stale cache automatically, so a scheduler is optional. To proactively refresh data, send one authenticated request per place ID:
 
-```json
-{
-  "crons": [
-    {
-      "path": "/api/google-reviews?force=true",
-      "schedule": "0 6 * * *"
-    }
-  ]
-}
+```http
+GET /api/google-reviews?placeId=<PLACE_ID>&force=true
+Authorization: Bearer <CRON_SECRET>
 ```
 
-3. Vercel automatically includes `Authorization: Bearer <CRON_SECRET>` headers, so forced refreshes succeed.
+## Cache and Failure Behavior
 
-With KV attached, cached payloads survive builds and serve stale data for up to the TTL even if Google Places is temporarily unreachable.
+The current rendered value stays unchanged when a client request fails, but that value is not persisted by the browser across reloads. On reload, the widget uses server cache when available or its component fallback values. By default, cached data is fresh for 24h and is retained for up to another 24h for stale fallback if the upstream API fails. In-memory cache is local to a server process; configured Redis persists across instances and deployments.
 
 ## QA Checklist
 
-- Confirm `.env` contains valid Google API key, place ID, and KV credentials.
+- Confirm `.env` contains a valid Google API key and place ID; Redis credentials are needed only when persistent caching is enabled.
 - Run `npm run dev` and verify both components render fallback values instantly, then hydrate with live data (check Network tab for `/api/google-reviews`).
 - Inspect the widget DOM to ensure `aria-label` text updates when rating changes (`google-reviews:update` event visible in Console when logging).
 - Trigger the forced refresh endpoint manually:
