@@ -6,7 +6,6 @@ Reusable Google Reviews components, helpers, and API handler for Astro projects.
 
 ```
 /
-├── docs/                       # Integration notes + QA checklist
 ├── src/
 │   ├── components/google-reviews/  # Widget, badge, inline bootstrapper
 │   ├── lib/                        # Client + server helpers
@@ -81,7 +80,7 @@ This is an on-demand server route and requires an [Astro server adapter](https:/
 ### Environment & Infra Checklist
 
 - Set the required server-side `GOOGLE_PLACES_API_KEY`; never embed it in client bundles. Supply a place ID with each component's `placeId` prop or use the optional `GOOGLE_PLACES_DEFAULT_PLACE_ID` environment variable.
-- Cache TTL, Redis credentials, and `CRON_SECRET` are optional. Normal widget requests refresh stale cache automatically, so scheduled refresh is only needed if you want proactive updates. See the [technical documentation](https://github.com/digital-craft-ltd/google-reviews-package/blob/main/docs/google-reviews.md) for cache behavior.
+- Cache TTL, Redis credentials, and `CRON_SECRET` are optional. Normal widget requests refresh stale cache automatically, so scheduled refresh is only needed if you want proactive updates.
 - Provide `fallbackRating`/`fallbackReviewCount` values to avoid UI flicker while live data loads.
 
 For optional scheduled refresh, send one authenticated request per place ID:
@@ -90,5 +89,3 @@ For optional scheduled refresh, send one authenticated request per place ID:
 GET /api/google-reviews?placeId=<PLACE_ID>&force=true
 Authorization: Bearer <CRON_SECRET>
 ```
-
-Detailed architecture, prop docs, and QA steps live in the [technical documentation](https://github.com/digital-craft-ltd/google-reviews-package/blob/main/docs/google-reviews.md).
