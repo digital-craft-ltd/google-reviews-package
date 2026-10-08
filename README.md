@@ -6,7 +6,6 @@ Reusable Google Reviews components, helpers, and API handler for Astro projects.
 
 ```
 /
-├── docs/                       # Integration notes + QA checklist
 ├── src/
 │   ├── components/google-reviews/  # Widget, badge, inline bootstrapper
 │   ├── lib/                        # Client + server helpers
@@ -63,6 +62,7 @@ import 'dc-google-reviews/styles.css';
 - Multiple locations: render multiple `<GoogleReviewsWidget>` instances, each with its own `placeId` (often sourced from `import.meta.env` per site).
 - Customise CTA copy via the `ctaText` prop (`{count}` and `{label}` tokens supported).
 - Bundle the shared stylesheet once per project (see import above) to receive the default Google styling.
+- Components use Tailwind utility classes for layout and typography. The package CSS covers shared review-specific styling; projects without Tailwind should provide equivalent layout and typography styles.
 
 ### API Route
 
@@ -75,12 +75,17 @@ export const prerender = false;
 export const GET = googleReviewsHandler;
 ```
 
+This is an on-demand server route and requires an [Astro server adapter](https://docs.astro.build/en/guides/on-demand-rendering/) appropriate to your deployment platform.
+
 ### Environment & Infra Checklist
 
-- Create a **server-side** Google Places API key with the Places API (New) enabled. Lock it down to your hosting IP/compute provider with Google Cloud restrictions.
-- Set `GOOGLE_PLACES_API_KEY`, `GOOGLE_PLACES_DEFAULT_PLACE_ID`, `GOOGLE_REVIEWS_CACHE_TTL`, and `CRON_SECRET` in `.env` (and mirror them in your hosting platform, e.g. Vercel). Never embed the API key in client bundles.
-- Attach [Upstash Redis](https://upstash.com/docs/redis/overall/getstarted) so cached payloads persist across deployments. On Vercel, the Upstash marketplace integration populates the `KV_REST_API_*` variables for you.
-- Schedule a Vercel cron hitting `https://<deploy-domain>/api/google-reviews?placeId=<ID>&force=true` with `Authorization: Bearer <CRON_SECRET>` for daily refreshes.
-- Provide `fallbackRating`/`fallbackReviewCount` values during builds to avoid UI flicker on first paint.
+- Set the required server-side `GOOGLE_PLACES_API_KEY`; never embed it in client bundles. Supply a place ID with each component's `placeId` prop or use the optional `GOOGLE_PLACES_DEFAULT_PLACE_ID` environment variable.
+- Cache TTL, Redis credentials, and `CRON_SECRET` are optional. Normal widget requests refresh stale cache automatically, so scheduled refresh is only needed if you want proactive updates.
+- Provide `fallbackRating`/`fallbackReviewCount` values to avoid UI flicker while live data loads.
 
-Detailed architecture, prop docs, and QA steps live in [`docs/google-reviews.md`](docs/google-reviews.md). CI and release expectations live in [`docs/ci-cd.md`](docs/ci-cd.md).
+For optional scheduled refresh, send one authenticated request per place ID:
+
+```http
+GET /api/google-reviews?placeId=<PLACE_ID>&force=true
+Authorization: Bearer <CRON_SECRET>
+```
