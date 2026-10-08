@@ -1,5 +1,5 @@
 {
-  "name": "@digital-craft/google-reviews",
+  "name": "@digital-craft/astro-google-reviews",
   "version": "0.4.0",
   "type": "module",
   "description": "Reusable Google Reviews widgets + API helpers for Astro projects.",
