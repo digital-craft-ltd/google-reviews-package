@@ -4,6 +4,8 @@
 <script type="module">
 	const selector = '[data-google-reviews-options]';
 	const isDev = Boolean(import.meta.env?.DEV);
+	const requestTimeoutMs = 5000;
+	const inFlightRequests = new Map();
 
 	const defaultSelectors = {
 		rating: '[data-rating]',
@@ -45,14 +47,14 @@
 	}) => {
 		const url = new URL(endpoint, origin);
 		const normalizedPlaceId = placeId?.trim();
-		const normalizedLanguageCode = languageCode?.trim();
+		const normalizedLanguageCode = languageCode?.trim().toLowerCase();
 		const normalizedBusinessName = businessName?.trim();
 
 		if (normalizedPlaceId) {
 			url.searchParams.set('placeId', normalizedPlaceId);
 		}
 
-		if (normalizedLanguageCode && normalizedLanguageCode.toLowerCase() !== 'en') {
+		if (normalizedLanguageCode && normalizedLanguageCode !== 'en') {
 			url.searchParams.set('languageCode', normalizedLanguageCode);
 		}
 
@@ -60,7 +62,100 @@
 			url.searchParams.set('businessName', normalizedBusinessName);
 		}
 
+		url.searchParams.sort();
+
 		return url.toString();
+	};
+
+	const isRating = (value) =>
+		typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 5;
+
+	const isReviewCount = (value) =>
+		typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+
+	const isHttpUrl = (value) => {
+		if (typeof value !== 'string') return false;
+
+		try {
+			const url = new URL(value);
+			return url.protocol === 'https:' || url.protocol === 'http:';
+		} catch {
+			return false;
+		}
+	};
+
+	const isGoogleReviewPayload = (payload) => {
+		if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false;
+
+		const validSource =
+			payload.source === 'fresh' || payload.source === 'cache' || payload.source === 'fallback';
+		const validUpdatedAt =
+			typeof payload.updatedAt === 'string' && !Number.isNaN(Date.parse(payload.updatedAt));
+
+		return (
+			isRating(payload.rating) &&
+			isReviewCount(payload.reviewCount) &&
+			isHttpUrl(payload.reviewsUrl) &&
+			typeof payload.placeId === 'string' &&
+			payload.placeId.trim().length > 0 &&
+			validUpdatedAt &&
+			validSource &&
+			typeof payload.languageCode === 'string' &&
+			payload.languageCode.trim().length > 0 &&
+			(payload.businessName === undefined || typeof payload.businessName === 'string')
+		);
+	};
+
+	const parseFallbackData = (value) => {
+		try {
+			const payload = JSON.parse(value);
+			if (!isRating(payload.rating)) return null;
+			if (payload.reviewCount !== null && !isReviewCount(payload.reviewCount)) return null;
+			return payload;
+		} catch {
+			return null;
+		}
+	};
+
+	const requestGoogleReviews = (requestUrl) => {
+		const existingRequest = inFlightRequests.get(requestUrl);
+		if (existingRequest) return existingRequest;
+
+		const controller = new AbortController();
+		let timedOut = false;
+		const timeoutId = window.setTimeout(() => {
+			timedOut = true;
+			controller.abort();
+		}, requestTimeoutMs);
+
+		const request = (async () => {
+			try {
+				const response = await fetch(requestUrl, { signal: controller.signal });
+				if (!response.ok) {
+					throw new Error(`Non-200 response ${response.status}`);
+				}
+
+				const payload = await response.json();
+				if (!isGoogleReviewPayload(payload)) {
+					throw new Error('Invalid Google Reviews response payload');
+				}
+
+				return payload;
+			} catch (error) {
+				if (timedOut) {
+					throw new Error(`Google Reviews request timed out after ${requestTimeoutMs}ms`);
+				}
+				throw error;
+			}
+		})().finally(() => {
+			window.clearTimeout(timeoutId);
+			if (inFlightRequests.get(requestUrl) === request) {
+				inFlightRequests.delete(requestUrl);
+			}
+		});
+
+		inFlightRequests.set(requestUrl, request);
+		return request;
 	};
 
 	function initGoogleReviews(options = {}) {
@@ -78,17 +173,9 @@
 		}
 
 		const fallbackTemplate = selectors.fallback ? root.querySelector(selectors.fallback) : null;
-		let fallbackData = null;
-
-		if (fallbackTemplate?.textContent) {
-			try {
-				fallbackData = JSON.parse(fallbackTemplate.textContent);
-			} catch (error) {
-				if (isDev) {
-					console.warn('[GoogleReviews] Failed to parse fallback data', error);
-				}
-			}
-		}
+		const fallbackData = fallbackTemplate?.textContent
+			? parseFallbackData(fallbackTemplate.textContent)
+			: null;
 
 		const ratingEl = selectors.rating ? root.querySelector(selectors.rating) : null;
 		const stars = selectors.star ? Array.from(root.querySelectorAll(selectors.star)) : [];
@@ -104,6 +191,11 @@
 		const language = dataset.language || 'en';
 		const initialBusinessName = dataset.businessName?.trim() ?? '';
 		const ctaTemplate = dataset.ctaTemplate || options.ctaTemplate || '';
+		let disposed = false;
+
+		const setState = (state) => {
+			root.dataset.googleReviewsState = state;
+		};
 
 		const applyStars = (rating) => {
 			if (!stars.length) return;
@@ -123,38 +215,21 @@
 				? template(strings.starsAvailable, { rating: formatRating(rating) })
 				: strings.starsPending;
 
-		const updateText = (payload) => {
-			if (!payload) return;
-
-			const rating =
-				typeof payload.rating === 'number' && Number.isFinite(payload.rating)
-					? payload.rating
-					: null;
+		const updateText = (payload, state) => {
+			const rating = isRating(payload.rating) ? payload.rating : null;
 
 			if (ratingEl) {
-				if (rating !== null) {
-					ratingEl.textContent = formatRating(rating);
-					ratingEl.setAttribute('aria-label', buildRatingLabel(rating));
-				} else {
-					ratingEl.textContent = '—';
-					ratingEl.setAttribute('aria-label', buildRatingLabel(null));
-				}
+				ratingEl.textContent = rating !== null ? formatRating(rating) : '—';
+				ratingEl.setAttribute('aria-label', buildRatingLabel(rating));
 			}
 
 			if (starsContainer) {
 				starsContainer.setAttribute('aria-label', buildStarsLabel(rating));
+				starsContainer.setAttribute('aria-hidden', rating !== null ? 'false' : 'true');
 			}
+			applyStars(rating ?? 0);
 
-			if (rating !== null) {
-				applyStars(rating);
-			} else {
-				applyStars(0);
-			}
-
-			const reviewCount =
-				typeof payload.reviewCount === 'number' && Number.isFinite(payload.reviewCount)
-					? payload.reviewCount
-					: null;
+			const reviewCount = isReviewCount(payload.reviewCount) ? payload.reviewCount : null;
 
 			if (reviewCountEl) {
 				reviewCountEl.textContent =
@@ -184,33 +259,19 @@
 			}
 
 			if (updatedAtEl && payload.updatedAt) {
-				try {
-					const label = new Date(payload.updatedAt).toLocaleString();
-					updatedAtEl.textContent = `Last updated ${label}`;
-					updatedAtEl.setAttribute('title', label);
-				} catch {
-					updatedAtEl.textContent = 'Last updated recently';
-				}
+				const timestamp = new Date(payload.updatedAt);
+				const label = Number.isNaN(timestamp.getTime()) ? null : timestamp.toLocaleString();
+				updatedAtEl.textContent = label ? `Last updated ${label}` : 'Last updated recently';
+				if (label) updatedAtEl.setAttribute('title', label);
 			}
 
-			if (payload.placeId) {
-				root.dataset.placeId = payload.placeId;
-			}
-			if (typeof payload.rating === 'number') {
-				root.dataset.rating = String(payload.rating);
-			}
-			if (typeof payload.reviewCount === 'number') {
-				root.dataset.reviewCount = String(payload.reviewCount);
-			}
-			if (payload.updatedAt) {
-				root.dataset.updatedAt = payload.updatedAt;
-			}
-			if (payload.businessName) {
-				root.dataset.businessName = payload.businessName;
-			}
-			if (payload.source) {
-				root.dataset.source = payload.source;
-			}
+			if (payload.placeId) root.dataset.placeId = payload.placeId;
+			if (rating !== null) root.dataset.rating = String(rating);
+			if (reviewCount !== null) root.dataset.reviewCount = String(reviewCount);
+			if (payload.updatedAt) root.dataset.updatedAt = payload.updatedAt;
+			if (payload.businessName) root.dataset.businessName = payload.businessName;
+			if (payload.source) root.dataset.source = payload.source;
+			setState(state);
 
 			const nextBusinessName = payload.businessName ?? root.dataset.businessName ?? initialBusinessName;
 
@@ -219,6 +280,7 @@
 					detail: {
 						placeId: payload.placeId || root.dataset.placeId,
 						businessName: nextBusinessName,
+						state,
 						data: payload,
 					},
 				}),
@@ -226,60 +288,67 @@
 		};
 
 		if (fallbackData) {
-			if (typeof fallbackData.rating === 'number') {
-				applyStars(fallbackData.rating);
-			}
-			updateText({ ...fallbackData, source: 'fallback' });
+			updateText({ ...fallbackData, source: 'fallback' }, 'fallback');
+		} else {
+			setState('unavailable');
 		}
 
-		const controller = new AbortController();
-
 		const fetchData = async () => {
+			if (disposed) return;
+			setState('loading');
+
 			try {
-				const currentBusinessName = root.dataset.businessName?.trim() ?? initialBusinessName;
 				const requestUrl = buildGoogleReviewsRequestUrl({
 					endpoint,
 					origin: window.location.origin,
 					placeId,
 					languageCode: language,
-					businessName: currentBusinessName,
+					businessName: root.dataset.businessName?.trim() ?? initialBusinessName,
 				});
-				const response = await fetch(requestUrl, { signal: controller.signal });
-				if (!response.ok) {
-					throw new Error(`Non-200 response ${response.status}`);
-				}
-
-				const payload = await response.json();
-				updateText(payload);
+				const payload = await requestGoogleReviews(requestUrl);
+				if (!disposed) updateText(payload, payload.source === 'fallback' ? 'fallback' : 'ready');
 			} catch (error) {
+				if (!disposed) setState('error');
 				if (isDev) {
 					console.error('[GoogleReviews]', error);
 				}
 			}
 		};
 
+		let readyHandler = null;
 		if (document.readyState === 'complete' || document.readyState === 'interactive') {
-			fetchData();
+			void fetchData();
 		} else {
-			document.addEventListener('DOMContentLoaded', fetchData, { once: true });
+			readyHandler = () => {
+				readyHandler = null;
+				void fetchData();
+			};
+			document.addEventListener('DOMContentLoaded', readyHandler, { once: true });
 		}
 
 		let visibilityHandler = null;
 		if (!options.disableVisibilityRefresh) {
 			visibilityHandler = () => {
-				if (document.visibilityState === 'visible' && root.dataset.source === 'fallback') {
-					fetchData();
+				const state = root.dataset.googleReviewsState;
+				if (
+					document.visibilityState === 'visible' &&
+					(state === 'fallback' || state === 'unavailable' || state === 'error')
+				) {
+					void fetchData();
 				}
 			};
-			window.addEventListener('visibilitychange', visibilityHandler);
+			document.addEventListener('visibilitychange', visibilityHandler);
 		}
 
-		root.addEventListener('astro:unmount', () => {
-			controller.abort();
-			if (visibilityHandler) {
-				window.removeEventListener('visibilitychange', visibilityHandler);
-			}
-		});
+		root.addEventListener(
+			'astro:unmount',
+			() => {
+				disposed = true;
+				if (readyHandler) document.removeEventListener('DOMContentLoaded', readyHandler);
+				if (visibilityHandler) document.removeEventListener('visibilitychange', visibilityHandler);
+			},
+			{ once: true },
+		);
 	}
 
 	const bootstrap = () => {

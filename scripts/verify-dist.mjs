@@ -13,3 +13,18 @@ if (rawBrowserImportPattern.test(inlineScript)) {
 	);
 	process.exit(1);
 }
+
+const requiredLifecycleMarkers = [
+	'inFlightRequests',
+	'googleReviewsState',
+	'Invalid Google Reviews response payload',
+	'Google Reviews request timed out',
+];
+const missingLifecycleMarkers = requiredLifecycleMarkers.filter((marker) => !inlineScript.includes(marker));
+
+if (missingLifecycleMarkers.length > 0) {
+	console.error(
+		`Inline client lifecycle is incomplete in ${inlineScriptPath}: ${missingLifecycleMarkers.join(', ')}`,
+	);
+	process.exit(1);
+}

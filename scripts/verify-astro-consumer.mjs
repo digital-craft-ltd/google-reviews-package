@@ -119,7 +119,13 @@ import 'dc-google-reviews/styles.css';
 		}
 
 		const html = readFileSync(outPath, 'utf8');
-		const missing = ['4.9', 'FIXTURE_PLACE_ID', 'Fixture Business', 'data-google-reviews-options'].filter(
+		const missing = [
+			'4.9',
+			'FIXTURE_PLACE_ID',
+			'Fixture Business',
+			'data-google-reviews-options',
+			'data-google-reviews-state="fallback"',
+		].filter(
 			(needle) => !html.includes(needle),
 		);
 

@@ -45,6 +45,7 @@ const badgeClientOptions = {
 
 const fallbackData = createFallbackData({ fallbackRating, fallbackReviewCount });
 const hasInitialRating = typeof fallbackData?.rating === 'number';
+const initialState = hasInitialRating ? 'fallback' : 'unavailable';
 const initialRating = formatRatingDisplay(fallbackData?.rating ?? null);
 const initialLabel = hasInitialRating
 	? `Google rating ${initialRating} out of 5 stars`
@@ -81,6 +82,7 @@ if (initialReviewCountValue !== null) {
 	data-business-name={initialBusinessName}
 	data-cta-template={ctaTemplate}
 	data-google-reviews-options={JSON.stringify(badgeClientOptions)}
+	data-google-reviews-state={initialState}
 >
 	<div class="flex items-center gap-2">
 		<span class="badge-google-icon block h-5 w-5" aria-hidden="true">
@@ -118,7 +120,12 @@ if (initialReviewCountValue !== null) {
 		>
 			{initialRating}
 		</p>
-		<div class="badge-stars flex items-center gap-[2px]" role="img" aria-hidden={hasInitialRating ? 'false' : 'true'}>
+		<div
+			class="badge-stars flex items-center gap-[2px]"
+			role="img"
+			aria-hidden={hasInitialRating ? 'false' : 'true'}
+			aria-label={hasInitialRating ? initialLabel : undefined}
+		>
 			{Array.from({ length: 5 }, (_, index) => (
 				<span class="badge-star" data-star={index} aria-hidden="true"></span>
 			))}

@@ -40,19 +40,23 @@ export const buildGoogleReviewsRequestUrl = ({
 	businessName,
 }: GoogleReviewsRequestUrlOptions): string => {
 	const url = new URL(endpoint, origin);
+	const normalizedPlaceId = placeId?.trim();
+	const normalizedLanguageCode = languageCode?.trim().toLowerCase();
+	const normalizedBusinessName = businessName?.trim();
 
-	if (placeId) {
-		url.searchParams.set('placeId', placeId);
+	if (normalizedPlaceId) {
+		url.searchParams.set('placeId', normalizedPlaceId);
 	}
 
-	const normalizedLanguageCode = languageCode?.trim();
-	if (normalizedLanguageCode && normalizedLanguageCode.toLowerCase() !== 'en') {
+	if (normalizedLanguageCode && normalizedLanguageCode !== 'en') {
 		url.searchParams.set('languageCode', normalizedLanguageCode);
 	}
 
-	if (businessName) {
-		url.searchParams.set('businessName', businessName);
+	if (normalizedBusinessName) {
+		url.searchParams.set('businessName', normalizedBusinessName);
 	}
+
+	url.searchParams.sort();
 
 	return url.toString();
 };
