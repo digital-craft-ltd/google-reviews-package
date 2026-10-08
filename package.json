@@ -1,6 +1,6 @@
 {
   "name": "dc-google-reviews",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "type": "module",
   "description": "Reusable Google Reviews widgets + API helpers for Astro projects.",
   "license": "MIT",
@@ -14,7 +14,6 @@
   "homepage": "https://github.com/digital-craft-ltd/google-reviews-package#readme",
   "files": [
     "dist",
-    "src",
     "README.md",
     "LICENSE"
   ],
