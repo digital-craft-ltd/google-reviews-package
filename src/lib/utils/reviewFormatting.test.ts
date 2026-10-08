@@ -59,7 +59,7 @@ describe('reviewFormatting utilities', () => {
 				placeId: 'abc123',
 				languageCode: 'fr',
 			}),
-		).toBe('https://example.com/api/google-reviews?placeId=abc123&languageCode=fr');
+		).toBe('https://example.com/api/google-reviews?languageCode=fr&placeId=abc123');
 	});
 
 	it('treats case and spacing variants of english as the default request shape', () => {
@@ -67,11 +67,31 @@ describe('reviewFormatting utilities', () => {
 			buildGoogleReviewsRequestUrl({
 				endpoint: '/api/google-reviews/',
 				origin: 'https://example.com',
-				placeId: 'abc123',
+				placeId: ' abc123 ',
 				languageCode: ' EN ',
-				businessName: 'Demo Co',
+				businessName: ' Demo Co ',
 			}),
-		).toBe('https://example.com/api/google-reviews/?placeId=abc123&businessName=Demo+Co');
+		).toBe('https://example.com/api/google-reviews/?businessName=Demo+Co&placeId=abc123');
+	});
+
+	it('normalizes language case and query ordering into one canonical request url', () => {
+		const first = buildGoogleReviewsRequestUrl({
+			endpoint: '/api/google-reviews?source=badge',
+			origin: 'https://example.com',
+			placeId: 'abc123',
+			languageCode: ' FR ',
+		});
+		const second = buildGoogleReviewsRequestUrl({
+			endpoint: '/api/google-reviews?source=badge',
+			origin: 'https://example.com',
+			placeId: ' abc123 ',
+			languageCode: 'fr',
+		});
+
+		expect(first).toBe(second);
+		expect(first).toBe(
+			'https://example.com/api/google-reviews?languageCode=fr&placeId=abc123&source=badge',
+		);
 	});
 
 	it('preserves existing endpoint query params while canonicalizing default english requests', () => {

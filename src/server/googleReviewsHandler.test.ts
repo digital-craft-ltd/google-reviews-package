@@ -51,4 +51,30 @@ describe('googleReviewsHandler', () => {
 			forceRefresh: false,
 		});
 	});
+
+	it('authorizes forced refreshes with CRON_SECRET', async () => {
+		mockGetGoogleReviewSnapshot.mockResolvedValue({
+			data: {
+				placeId: 'abc123',
+				rating: 4.9,
+				reviewCount: 42,
+				reviewsUrl: 'https://search.google.com/local/reviews?placeid=abc123',
+				languageCode: 'en',
+				updatedAt: '2024-01-02T03:04:05.000Z',
+				source: 'fresh',
+			},
+		});
+
+		const request = new Request('https://example.com/api/google-reviews?placeId=abc123&force=true', {
+			headers: { Authorization: 'Bearer test-secret' },
+		});
+		const response = await googleReviewsHandler({ request } as never);
+
+		expect(response.status).toBe(200);
+		expect(mockGetGoogleReviewSnapshot).toHaveBeenCalledWith('abc123', {
+			languageCode: 'en',
+			businessName: undefined,
+			forceRefresh: true,
+		});
+	});
 });
