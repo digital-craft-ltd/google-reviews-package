@@ -18,7 +18,7 @@ if (!major || !/^\d+$/.test(major)) {
 }
 
 const projectRoot = resolve(import.meta.dirname, '..');
-const workDir = mkdtempSync(join(tmpdir(), `dc-google-reviews-astro${major}-`));
+const workDir = mkdtempSync(join(tmpdir(), `digital-craft-google-reviews-astro${major}-`));
 const run = (cmd, args, cwd) =>
 	execFileSync(cmd, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
@@ -47,10 +47,10 @@ try {
 		join(appDir, 'package.json'),
 		JSON.stringify(
 			{
-				name: `dc-google-reviews-consumer-astro${major}`,
+				name: `@digital-craft/google-reviews-consumer-astro${major}`,
 				private: true,
 				type: 'module',
-				dependencies: { astro: `^${major}.0.0`, 'dc-google-reviews': `file:${tarball}` },
+				dependencies: { astro: `^${major}.0.0`, '@digital-craft/google-reviews': `file:${tarball}` },
 				devDependencies: { '@astrojs/check': 'latest', typescript: '^5.5.4' },
 			},
 			null,
@@ -68,8 +68,8 @@ import {
   GoogleReviewInlineScript,
   GoogleReviewsWidget,
   GoogleReviewsBadge,
-} from 'dc-google-reviews';
-import 'dc-google-reviews/styles.css';
+} from '@digital-craft/google-reviews';
+import '@digital-craft/google-reviews/styles.css';
 ---
 <html lang="en">
   <head><title>consumer</title></head>
