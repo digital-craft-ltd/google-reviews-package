@@ -4,6 +4,14 @@
   "type": "module",
   "description": "Reusable Google Reviews widgets + API helpers for Astro projects.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/digital-craft-ltd/google-reviews-package.git"
+  },
+  "bugs": {
+    "url": "https://github.com/digital-craft-ltd/google-reviews-package/issues"
+  },
+  "homepage": "https://github.com/digital-craft-ltd/google-reviews-package#readme",
   "files": [
     "dist",
     "src",
