@@ -1,14 +1,7 @@
 name: Release
 
-# Publishes to npm via trusted publishing (GitHub Actions OIDC). There is no
-# npm token anywhere: npm verifies the OIDC claims below against the trusted
-# publisher configured on the package, and mints a short-lived credential.
-#
-# This exists because the maintainer account uses a passkey for 2FA, and npm's
-# CLI publish prompt only accepts a TOTP code or a 64-char hex token - it has no
-# WebAuthn flow. So a local `npm publish` can never be completed interactively.
-#
-# Trigger: push a tag matching v*, e.g. `git tag v0.3.0 && git push origin v0.3.0`.
+# Publishes tagged releases through npm trusted publishing (GitHub Actions OIDC).
+# The npm trusted publisher is configured to stage releases for human approval.
 
 on:
   push:
@@ -34,12 +27,10 @@ jobs:
         with:
           node-version: '22.22'
           registry-url: 'https://registry.npmjs.org'
-          # npm's trusted-publishing docs: never use caching in release builds.
+          # npm recommends disabling dependency caching for trusted publishing.
           package-manager-cache: false
 
-      # Trusted publishing requires npm >= 11.5.1 and node >= 22.14.0. Node
-      # 22.22 clears the node floor but bundles npm 10.9.x, which has no OIDC
-      # support at all, so the CLI must be upgraded before publishing.
+      # Trusted publishing requires npm >= 11.5.1; Node 22.22 bundles npm 10.
       - name: Install npm 12
         run: npm install -g npm@12
 
@@ -51,8 +42,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # A tag that disagrees with package.json would publish a version nobody
-      # expects, under a tag pointing at different contents.
       - name: Verify tag matches package.json version
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
@@ -70,23 +59,13 @@ jobs:
       - name: Test
         run: npm test
 
-      # Built explicitly rather than leaning on prepublishOnly. `npm stage
-      # publish` packs the working directory, and dist/ is gitignored - if that
-      # hook did not fire we would stage a package with no dist/ at all.
+      # dist is ignored and must exist before the package is staged.
       - name: Build
         run: npm run build
 
       - name: Verify built package output
         run: npm run verify:dist
 
-      # Staged, not published. The trusted publisher is configured stage-only,
-      # which is npm's recommended posture: CI stages without 2FA, then a human
-      # approves with proof-of-presence before anything goes public.
-      #
-      # Approve at npmjs.com - NOT `npm stage approve`, which prompts for a TOTP
-      # code the maintainer's passkey cannot provide.
-      #
-      # No --provenance flag: npm generates provenance automatically when
-      # publishing via trusted publishing from a public repo.
+      # npm holds the staged release for approval before publishing it.
       - name: Stage publish
         run: npm stage publish

@@ -56,9 +56,7 @@ if (initialCtaText.includes('{label}')) {
 if (initialReviews !== null) {
 	initialCtaText = initialCtaText.replace('{count}', initialReviews);
 } else if (initialCtaText.includes('{count}')) {
-	// No fallback count available, surface a friendly placeholder.
 	initialCtaText = initialCtaText.replace('{count}', 'No');
-	// Strip trailing plural placeholder if still present.
 	if (initialCtaText.includes('{label}')) {
 		initialCtaText = initialCtaText.replace('{label}', 'reviews');
 	}
@@ -71,7 +69,6 @@ const initialScreenReaderCount = fallbackData
 		? `${initialReviews} ${initialLabel}`
 		: 'No reviews yet'
 	: initialReviews ?? 'No reviews yet';
-const initialUpdatedText = fallbackData ? 'Last updated just now' : 'Updating…';
 const initialRatingAria = hasInitialRating
 	? `Our Google Reviews rating is ${initialRating}`
 	: 'Awaiting Google Reviews rating';
@@ -149,7 +146,6 @@ const initialStarsAria = hasInitialRating
 				)
 			</span>
 		</a>
-		<!-- <p class="text-xs text-neutral-500" data-updated-at title="Last updated at">{initialUpdatedText}</p> -->
 	</div>
 	<template data-fallback>{fallbackData ? JSON.stringify(fallbackData) : ''}</template>
 </section>

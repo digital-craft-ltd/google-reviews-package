@@ -170,7 +170,7 @@ async function fetchFromGoogle({ placeId, languageCode, businessName }: FetchOpt
 			const parsed = JSON.parse(responseText);
 			errorDetail = parsed.error?.message ?? response.statusText;
 		} catch {
-			// Keep default message
+			// Keep the HTTP status text when Google returns a non-JSON error body.
 		}
 
 		throw new Error(`Google Places API error (${response.status}): ${errorDetail}`);
