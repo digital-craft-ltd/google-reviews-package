@@ -1,6 +1,6 @@
 # Google Reviews for Astro
 
-`dc-google-reviews` provides an Astro badge, a larger review widget, a browser lifecycle client, and a server handler for Google Places ratings. API credentials stay on the server. The components can show an immediate fallback and then refresh themselves from an Astro endpoint.
+`@digital-craft-ltd/google-reviews` provides an Astro badge, a larger review widget, a browser lifecycle client, and a server handler for Google Places ratings. API credentials stay on the server. The components can show an immediate fallback and then refresh themselves from an Astro endpoint.
 
 ## Requirements
 
@@ -14,8 +14,19 @@ The page containing a badge or widget may still be prerendered. Its `/api/google
 ## Install
 
 ```bash
-npm install dc-google-reviews
+npm install @digital-craft-ltd/google-reviews
 ```
+
+### Migrating from the unscoped package
+
+`@digital-craft-ltd/google-reviews` replaces `dc-google-reviews` from version 0.4.0. The public API is unchanged, so existing sites only need to replace the dependency and import name:
+
+```bash
+npm uninstall dc-google-reviews
+npm install @digital-craft-ltd/google-reviews
+```
+
+The unscoped package remains available for existing installations but receives no releases after 0.3.3.
 
 ## Add the shared client once
 
@@ -24,8 +35,8 @@ Import the stylesheet and render exactly one `GoogleReviewInlineScript` in the s
 ```astro
 ---
 // src/layouts/BaseLayout.astro
-import { GoogleReviewInlineScript } from 'dc-google-reviews';
-import 'dc-google-reviews/styles.css';
+import { GoogleReviewInlineScript } from '@digital-craft-ltd/google-reviews';
+import '@digital-craft-ltd/google-reviews/styles.css';
 ---
 
 <html lang="en">
@@ -48,11 +59,11 @@ Register the published components relative to the consuming stylesheet. For the 
 ```css
 /* src/styles/global.css */
 @import "tailwindcss";
-@import "dc-google-reviews/styles.css";
-@source "../../node_modules/dc-google-reviews/dist/components";
+@import "@digital-craft-ltd/google-reviews/styles.css";
+@source "../../node_modules/@digital-craft-ltd/google-reviews/dist/components";
 ```
 
-Import that stylesheet from the layout instead of importing `dc-google-reviews/styles.css` there a second time:
+Import that stylesheet from the layout instead of importing `@digital-craft-ltd/google-reviews/styles.css` there a second time:
 
 ```astro
 ---
@@ -70,12 +81,12 @@ Add the published Astro components to the `content` array in `tailwind.config.mj
 export default {
   content: [
     './src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}',
-    './node_modules/dc-google-reviews/dist/components/**/*.astro',
+    './node_modules/@digital-craft-ltd/google-reviews/dist/components/**/*.astro',
   ],
 };
 ```
 
-Keep the `dc-google-reviews/styles.css` import shown in the layout. Projects without Tailwind must provide equivalent layout and typography rules for the utility classes while still importing the package stylesheet for the review-specific baseline.
+Keep the `@digital-craft-ltd/google-reviews/styles.css` import shown in the layout. Projects without Tailwind must provide equivalent layout and typography rules for the utility classes while still importing the package stylesheet for the review-specific baseline.
 
 ## Render a badge or widget
 
@@ -83,7 +94,7 @@ Pass `placeId` explicitly when possible. Fallback values are optional, but they 
 
 ```astro
 ---
-import { GoogleReviewsBadge, GoogleReviewsWidget } from 'dc-google-reviews';
+import { GoogleReviewsBadge, GoogleReviewsWidget } from '@digital-craft-ltd/google-reviews';
 ---
 
 <GoogleReviewsBadge
@@ -140,7 +151,7 @@ Create this file in the consuming Astro site:
 
 ```ts
 // src/pages/api/google-reviews.ts
-import { googleReviewsHandler } from 'dc-google-reviews';
+import { googleReviewsHandler } from '@digital-craft-ltd/google-reviews';
 
 export const prerender = false;
 export const GET = googleReviewsHandler;
@@ -218,7 +229,7 @@ For example, a site that intentionally uses shared HTTP caching can own that pol
 
 ```ts
 import type { APIRoute } from 'astro';
-import { googleReviewsHandler } from 'dc-google-reviews';
+import { googleReviewsHandler } from '@digital-craft-ltd/google-reviews';
 
 export const prerender = false;
 
