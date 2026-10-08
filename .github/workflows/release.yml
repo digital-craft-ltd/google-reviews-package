@@ -30,18 +30,6 @@ jobs:
           # npm recommends disabling dependency caching for trusted publishing.
           package-manager-cache: false
 
-      # Trusted publishing requires npm >= 11.5.1; Node 22.22 bundles npm 10.
-      - name: Install npm 12
-        run: npm install -g npm@12
-
-      - name: Report toolchain
-        run: |
-          echo "node $(node -v)"
-          echo "npm  $(npm -v)"
-
-      - name: Install dependencies
-        run: npm ci
-
       - name: Verify tag matches package.json version
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
@@ -53,19 +41,51 @@ jobs:
             exit 1
           fi
 
+      - name: Check npm registry
+        id: registry
+        run: |
+          PACKAGE_NAME="$(node -p "require('./package.json').name")"
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          if npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version --json >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "$PACKAGE_NAME@$PACKAGE_VERSION is already published; skipping."
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Trusted publishing requires npm >= 11.5.1; Node 22.22 bundles npm 10.
+      - name: Install npm 12
+        if: steps.registry.outputs.published != 'true'
+        run: npm install -g npm@12
+
+      - name: Report toolchain
+        if: steps.registry.outputs.published != 'true'
+        run: |
+          echo "node $(node -v)"
+          echo "npm  $(npm -v)"
+
+      - name: Install dependencies
+        if: steps.registry.outputs.published != 'true'
+        run: npm ci
+
       - name: Typecheck
+        if: steps.registry.outputs.published != 'true'
         run: npm run typecheck
 
       - name: Test
+        if: steps.registry.outputs.published != 'true'
         run: npm test
 
       # dist is ignored and must exist before the package is staged.
       - name: Build
+        if: steps.registry.outputs.published != 'true'
         run: npm run build
 
       - name: Verify built package output
+        if: steps.registry.outputs.published != 'true'
         run: npm run verify:dist
 
       # npm holds the staged release for approval before publishing it.
       - name: Stage publish
-        run: npm stage publish
+        if: steps.registry.outputs.published != 'true'
+        run: npm stage publish --access public
